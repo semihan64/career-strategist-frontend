@@ -22,52 +22,17 @@ skillsLevel: "High" or "Medium" or "Low"
 domainLevel: "Strong" or "Moderate" or "Weak"
 seniorityLevel: "Aligned" or "Slight stretch" or "Mismatch"
 
-mindsetBanner: ONE sentence, max 20 words. Tone: blunt, direct, insider knowledge. Like a colleague who knows exactly how hiring works telling them the truth. If name is known use it once at the start. Reference something specific and real from their background or the gap. No em dashes. No hype. No corporate tone. Examples: "Aisha, your IAM background is genuinely rare here. The gap is the consulting story, not the skills." (this can be 2 short sentences if needed) / "You have the depth. The way you are telling it is what is losing the room." / "This role is within reach. One narrative shift changes everything."
+mindsetBanner: Write 2 to 3 sentences in this exact voice and style. Study these examples carefully and match them precisely:
 
-whyFit: exactly 2 bullets separated by | character. Each under 18 words. Specific signals only. No vague praise. Start each with a strong verb or noun.
+EXAMPLE 1 (stretch role): "Aisha, five years of solid BA work and an IAM programme under your belt, that is not nothing. This role is a stretch, but the kind of stretch that actually makes sense for where you are. Walk in talking about outcomes you drove, not processes you followed."
 
-edge: 1 sentence max. The single clearest differentiator vs other candidates. Concrete.
+EXAMPLE 2 (strong fit): "You have been doing this work at a higher level than your title suggests, and this role reflects that. The product design background is quietly one of your strongest cards here, most candidates will not have it. Do not bury it."
 
-hiringManagerCares: 2 short bullets separated by | character. What they ACTUALLY care about beyond the JD. Insider tone. Each under 20 words.
+EXAMPLE 3 (low probability): "Honestly, this one is a bigger jump than it looks on paper. The experience is there in parts, but there are some real gaps that will come up in the room. Worth applying if you are okay with a long shot, but go in knowing what you are up against."
 
-redFlags: 2 short bullets separated by | character. Specific concerns this candidate raises. Each under 18 words.
+EXAMPLE 4 (good structure, no dashes): "Aisha brings hands-on transformation delivery and process redesign, exactly what frontline change work demands. The consulting angle is the only thing to shore up before the interview."
 
-pitch: Natural 30-second pitch. Conversational — sounds like a real person, not a rehearsed script. 55-70 words. References real experience. Zero buzzwords (no "passionate", "proven track record", "leverage", "synergy").
-
-positioning: Complete sentence: "A [specific role identity] with [concrete strength] in [relevant domain]"
-
-fitVerdict: "Strong fit" or "Stretch" or "Low probability"
-fitReason: one sharp line, under 15 words
-
-applyVerdict: exactly one of: "Apply now" or "Winnable, reposition first" or "Skip this one"
-applyReason: 1 sentence max. Specific.
-
-whatToDoNext: 2-3 action instructions as bullets separated by | character. Direct, imperative tone. If name known use it once at the start of the first bullet only. Each instruction under 20 words. Example format: "Lead with your IAM work as compliance infrastructure, not just process delivery." NOT "You could improve by emphasising..."
-
-rejectionRisk: 2 short bullets separated by | character. Specific risks. Focused on positioning gaps or narrative weakness. Each under 20 words.
-
-whatTheyAreTesting: 1-2 sentences. What the interviewer is actually validating in this specific interview.
-
-q1: Interview question specific to this role and candidate. Not a generic behavioural template.
-q1whyAsking: 1 short line. Why they're really asking. Insider framing. Under 15 words.
-q1intent: What a strong answer must demonstrate. 1 sentence.
-q1approach: How THIS candidate should answer given their background. 2 short sentences max.
-q1mistake: Most common mistake on this question. 1 sentence.
-
-q2: Second specific question.
-q2whyAsking: 1 short line.
-q2intent: 1 sentence.
-q2approach: 2 short sentences max.
-q2mistake: 1 sentence.
-
-q3: Third specific question.
-q3whyAsking: 1 short line.
-q3intent: 1 sentence.
-q3approach: 2 short sentences max.
-q3mistake: 1 sentence.
-
-exampleAnswer: Strong answer to the most important question. Conversational. Grounded in the candidate's real experience. 110-140 words. Sounds like a real person mid-conversation — not a polished presentation.
-
+Now write one for this specific candidate and role. Use their name if known. Sound like a real person who read everything. No corporate words. No dashes of any kind. No em dashes. No hyphens used as pauses. No AI phrasing. Short sentences. Warm but direct.
 Return ONLY the JSON object. Nothing else.`;
 
 const C = {
