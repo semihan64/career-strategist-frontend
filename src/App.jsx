@@ -77,7 +77,7 @@ const C = {
   amber: "#F59E0B", amberGlow: "rgba(245,158,11,0.1)",
   green: "#10B981", greenGlow: "rgba(16,185,129,0.1)",
   red: "#EF4444", redGlow: "rgba(239,68,68,0.1)",
-  text: "#E2E4F0", textMuted: "#6B7099", textDim: "#3D4060",
+  text: "#E2E4F0", textMuted: "#8892B0", textDim: "#8892B0",
 };
 
 const css = `
@@ -90,6 +90,14 @@ const css = `
   ::-webkit-scrollbar-thumb{background:${C.accent};border-radius:2px}
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes spin{to{transform:rotate(360deg)}}
+  @media(max-width:640px){
+    .grid-2col{grid-template-columns:1fr !important}
+    .score-grid{grid-template-columns:1fr !important}
+    .pills-row{flex-direction:column !important; gap:8px !important}
+    .hide-mobile{display:none !important}
+    .pad-mobile{padding:16px !important}
+    .font-mobile-sm{font-size:13px !important}
+  }
 `;
 
 // Point this to your deployed proxy URL
@@ -199,7 +207,7 @@ function Pill({ label, value, type }) {
 
 function Label({ children, color }) {
   return (
-    <div style={{ fontSize: 11, letterSpacing: 3, color: color || C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 10, textAlign: "left", display: "flex", alignItems: "center", gap: 6 }}>
+    <div style={{ fontSize: 11, letterSpacing: 3, color: color || C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 8, textAlign: "left", display: "flex", alignItems: "center", gap: 6 }}>
       <div style={{ width: 3, height: 12, background: color || C.accent, borderRadius: 2, flexShrink: 0 }} />
       {children}
     </div>
@@ -208,7 +216,7 @@ function Label({ children, color }) {
 
 function Card({ children, style = {}, glow }) {
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 18px", textAlign: "left", boxShadow: glow ? `0 0 28px ${glow}` : "none", ...style }}>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", textAlign: "left", boxShadow: glow ? `0 0 28px ${glow}` : "none", ...style }}>
       {children}
     </div>
   );
@@ -225,7 +233,9 @@ function QCard({ q, whyAsking, intent, approach, mistake, num }) {
       <button onClick={() => setOpen(!open)} style={{ width: "100%", background: open ? C.cardHover : C.card, border: "none", padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "flex-start", gap: 12, textAlign: "left" }}>
         <span style={{ fontSize: 10, fontFamily: "'IBM Plex Mono'", color: C.accent, minWidth: 20, paddingTop: 2 }}>Q{num}</span>
         <span style={{ fontSize: 14, color: C.text, fontFamily: "'IBM Plex Sans'", flex: 1, lineHeight: 1.55 }}>{q}</span>
-        <span style={{ color: C.textMuted, fontSize: 11, transition: "transform 0.2s", transform: open ? "rotate(180deg)" : "none", paddingTop: 3 }}>▾</span>
+        <div style={{ flexShrink: 0, width: 26, height: 26, borderRadius: 6, background: open ? C.accent : "rgba(107,92,231,0.12)", border: `1px solid ${open ? C.accent : "rgba(107,92,231,0.25)"}`, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
+          <span style={{ color: open ? "#fff" : C.accentBright, fontSize: 12, lineHeight: 1, display: "block", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
+        </div>
       </button>
       {open && (
         <div style={{ background: C.surface, padding: "14px 16px", display: "grid", gap: 12, animation: "fadeUp 0.2s ease" }}>
@@ -277,7 +287,19 @@ export default function App() {
   const [jd, setJd]           = useState("");
   const [result, setResult]   = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("");
   const [error, setError]     = useState("");
+
+  const LOADING_MESSAGES = [
+    "Reading the room…",
+    "Thinking like a hiring manager…",
+    "We're about to create magic…",
+    "Checking your positioning…",
+    "Almost there, just a moment…",
+    "Pulling the honest read…",
+    "Analysing your fit…",
+    "Finding your edge…",
+  ];
 
   const [copiedPitch, setCopiedPitch] = useState(false);
   const [copiedAnswer, setCopiedAnswer] = useState(false);
@@ -287,10 +309,20 @@ export default function App() {
   const handleAnalyse = async () => {
     if (!jd.trim()) { setError("Paste a job description to continue."); return; }
     setError(""); setLoading(true); setResult(null);
+    setLoadingMsg(LOADING_MESSAGES[0]);
+    let msgIndex = 0;
+    const msgInterval = setInterval(() => {
+      msgIndex = (msgIndex + 1) % LOADING_MESSAGES.length;
+      setLoadingMsg(LOADING_MESSAGES[msgIndex]);
+    }, 2200);
     try {
       const data = await callClaude(null, null, cv, jd);
+      clearInterval(msgInterval);
       setResult(data); setScreen("result");
-    } catch (err) { setError("Error: " + err.message); }
+    } catch (err) {
+      clearInterval(msgInterval);
+      setError("Error: " + err.message);
+    }
     setLoading(false);
   };
 
@@ -309,10 +341,10 @@ export default function App() {
     <>
       <style>{css}</style>
       <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "0", textAlign: "left" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 40px 48px" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 clamp(16px, 4vw, 40px) 24px" }}>
 
           {/* Perceive header bar */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 0 20px", borderBottom: `1px solid ${C.border}`, marginBottom: 0, animation: "fadeUp 0.4s ease" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0 16px", borderBottom: `1px solid ${C.border}`, marginBottom: 0, animation: "fadeUp 0.4s ease" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
@@ -323,34 +355,35 @@ export default function App() {
             </div>
           </div>
 
-          {/* Hero copy block — Option C: Editorial */}
-          <div style={{ marginBottom: 0, animation: "fadeUp 0.5s ease 0.05s both", textAlign: "left", padding: "48px 0 52px" }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 22 }}>
-              <div style={{ width: 2, background: C.accent, borderRadius: 2, flexShrink: 0, alignSelf: "stretch", minHeight: 80 }} />
+          {/* Hero copy block — Option B: Eyebrow above headline */}
+          <div style={{ marginBottom: 0, animation: "fadeUp 0.5s ease 0.05s both", textAlign: "left", padding: "36px 0 40px" }}>
+            {/* Eyebrow — flat label, no pill */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <div style={{ width: 16, height: 1, background: C.accent, flexShrink: 0 }} />
+              <span style={{ fontSize: 10, letterSpacing: "0.2em", color: C.accent, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase" }}>Role Intelligence</span>
+            </div>
+            {/* Headline with vertical rule */}
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 14 }}>
+              <div style={{ width: 4, background: C.accent, borderRadius: 2, flexShrink: 0, alignSelf: "stretch", minHeight: 90 }} />
               <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(36px, 5vw, 52px)", fontWeight: 300, color: C.text, lineHeight: 1.1, margin: 0 }}>
-                You're getting interviews.<br/>
-                <span style={{ fontStyle: "italic", color: C.accent, fontWeight: 400 }}>Something's losing the offer.</span>
+                You're getting interviews…<br/>
+                <span style={{ fontStyle: "italic", color: C.accent, fontWeight: 400 }}>so why aren't you getting offers?</span>
               </h1>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(107,92,231,0.08)", border: "1px solid rgba(107,92,231,0.2)", borderRadius: 20, padding: "5px 12px 5px 8px", flexShrink: 0 }}>
-                <div style={{ width: 5, height: 5, borderRadius: "50%", background: C.accent }} />
-                <span style={{ fontSize: 11, letterSpacing: "0.15em", color: C.accent, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase" }}>Role Intelligence</span>
-              </div>
-              <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0, textAlign: "left", textAlign: "left", fontWeight: 400 }}>
-                Find out what the hiring manager perceives before you walk in.
-              </p>
-            </div>
+            {/* Subtext */}
+            <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0, fontWeight: 400, paddingLeft: 20 }}>
+              Most candidates walk in guessing. You won't.
+            </p>
           </div>
 
-          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 36, animation: "fadeUp 0.4s ease 0.15s both" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 20, animation: "fadeUp 0.4s ease 0.15s both" }}>
+          <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase" }}>Your CV</label>
                 <span style={{ fontSize: 10, color: C.textDim, fontFamily: "'IBM Plex Mono'" }}>Edit as needed</span>
               </div>
-              <textarea value={cv} onChange={e => setCv(e.target.value)} rows={18}
+              <textarea value={cv} onChange={e => setCv(e.target.value)} rows={9}
                 style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7, transition: "border-color 0.2s" }}
                 onFocus={e => e.target.style.borderColor = C.accent}
                 onBlur={e => e.target.style.borderColor = C.border} />
@@ -358,10 +391,10 @@ export default function App() {
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase" }}>Job Description</label>
-                <span style={{ fontSize: 10, color: C.textDim, fontFamily: "'IBM Plex Mono'" }}>Paste the full listing</span>
+                <span style={{ fontSize: 10, color: jd.length > 900 ? C.amber : C.textDim, fontFamily: "'IBM Plex Mono'", transition: "color 0.2s" }}>{jd.length} / 1000</span>
               </div>
-              <textarea value={jd} onChange={e => { setJd(e.target.value); setError(""); }}
-                placeholder="Paste the job description here..." rows={18}
+              <textarea value={jd} onChange={e => { if (e.target.value.length <= 1000) { setJd(e.target.value); setError(""); } }}
+                placeholder="Paste the job description here..." rows={9}
                 style={{ width: "100%", background: C.card, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7, transition: "border-color 0.2s" }}
                 onFocus={e => { if (!error) e.target.style.borderColor = C.accent; }}
                 onBlur={e => { if (!error) e.target.style.borderColor = C.border; }} />
@@ -374,7 +407,7 @@ export default function App() {
             onMouseEnter={e => { if (!loading) e.target.style.opacity = "0.88"; }}
             onMouseLeave={e => { if (!loading) e.target.style.opacity = "1"; }}>
             {loading
-              ? (<><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> Analysing your fit...</>)
+              ? (<><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> {loadingMsg}</>)
               : "Analyse this role →"}
           </button>
           </div>
@@ -395,7 +428,7 @@ export default function App() {
     return (
       <>
         <style>{css}</style>
-        <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "28px 20px", textAlign: "left" }}>
+        <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "clamp(16px,4vw,28px) clamp(16px,4vw,20px)", textAlign: "left" }}>
           <div style={{ maxWidth: 780, margin: "0 auto" }}>
 
             {/* Nav */}
@@ -413,14 +446,14 @@ export default function App() {
 
             {/* Score card */}
             <Card style={{ marginBottom: 14, animation: "fadeUp 0.4s ease 0.05s both" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "28px", alignItems: "start", marginBottom: 20 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "20px", alignItems: "start", marginBottom: 14 }}>
                 <div>
                   <div style={{ fontFamily: "'Bebas Neue'", fontSize: 68, color: C.text, lineHeight: 1, letterSpacing: "-1px" }}>
                     {r.matchScore}<span style={{ fontSize: 28, color: C.textMuted, fontWeight: 400 }}>%</span>
                   </div>
                   <div style={{ fontSize: 10, color: C.textMuted, fontFamily: "'IBM Plex Mono'", letterSpacing: 3, marginTop: 4 }}>MATCH SCORE</div>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div className="score-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                   <div style={{ borderLeft: `2px solid ${fitColor(r.fitVerdict)}40`, paddingLeft: 14 }}>
                     <div style={{ fontSize: 10, letterSpacing: 2, color: C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 6 }}>REALITY CHECK</div>
                     <div style={{ fontSize: 18, color: fitColor(r.fitVerdict), fontWeight: 600, fontFamily: "'IBM Plex Sans'", marginBottom: 8 }}>{r.fitVerdict}</div>
@@ -433,7 +466,7 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 20, display: "flex", gap: 0 }}>
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 14, display: "flex", gap: 0 }}>
                 <div style={{ flex: 1, borderRight: "none", paddingLeft: 0, paddingRight: 24 }}>
                   <Pill label="SKILLS"    value={r.skillsLevel}    type={r.skillsLevel === "High" ? "good"    : r.skillsLevel === "Medium" ? "warn" : "bad"} />
                 </div>
@@ -447,7 +480,7 @@ export default function App() {
             </Card>
 
             {/* Why Fit + Edge */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+            <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
               <Card style={{ animation: "fadeUp 0.4s ease 0.1s both" }}>
                 <Label color={C.green}>WHY YOU FIT</Label>
                 <BulletList items={whyFitBullets} dotColor={C.green} />
@@ -459,7 +492,7 @@ export default function App() {
             </div>
 
             {/* HM Lens + Rejection Risk */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+            <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
               <Card style={{ animation: "fadeUp 0.4s ease 0.16s both" }}>
                 <Label color={C.amber}>HIRING MANAGER LENS</Label>
                 <BulletList items={hmBullets} dotColor={C.amber} />
