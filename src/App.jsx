@@ -148,7 +148,7 @@ function pipeSplit(str) {
 
 function BulletList({ items, dotColor, textSize = 13 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 7, textAlign: "left" }}>
       {items.map((line, i) => (
         <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
           <div style={{ width: 5, height: 5, background: dotColor, borderRadius: "50%", marginTop: 6, flexShrink: 0 }} />
@@ -161,7 +161,7 @@ function BulletList({ items, dotColor, textSize = 13 }) {
 
 function ActionList({ items }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 7, textAlign: "left" }}>
       {items.map((line, i) => (
         <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
           <div style={{ fontSize: 14, color: C.accentBright, fontFamily: "'IBM Plex Mono'", marginTop: 1, flexShrink: 0 }}>→</div>
@@ -174,22 +174,32 @@ function ActionList({ items }) {
 
 function Pill({ label, value, type }) {
   const col = {
-    good: { bg: "rgba(16,185,129,0.15)",  border: "rgba(16,185,129,0.35)",  text: C.green },
-    warn: { bg: "rgba(245,158,11,0.15)",  border: "rgba(245,158,11,0.35)",  text: C.amber },
-    bad:  { bg: "rgba(239,68,68,0.15)",   border: "rgba(239,68,68,0.35)",   text: C.red   },
-    neu:  { bg: C.accentGlow, border: "rgba(139,124,248,0.35)", text: C.accentBright },
-  }[type] || { bg: C.accentGlow, border: "rgba(139,124,248,0.35)", text: C.accentBright };
+    good: { dot: C.green,        text: C.green,        border: "rgba(16,185,129,0.25)" },
+    warn: { dot: C.amber,        text: C.amber,        border: "rgba(245,158,11,0.25)" },
+    bad:  { dot: C.red,          text: C.red,          border: "rgba(239,68,68,0.25)"  },
+    neu:  { dot: C.accentBright, text: C.accentBright, border: "rgba(139,124,248,0.25)" },
+  }[type] || { dot: C.accentBright, text: C.accentBright, border: "rgba(139,124,248,0.25)" };
+
+  const dots = value === "High" || value === "Aligned" || value === "Strong" ? 3
+             : value === "Medium" || value === "Moderate" || value === "Slight stretch" ? 2
+             : 1;
+
   return (
-    <div style={{ flex: 1, background: col.bg, border: `1px solid ${col.border}`, borderRadius: 8, padding: "14px 16px" }}>
-      <div style={{ fontSize: 10, letterSpacing: 2, color: col.text, fontFamily: "'IBM Plex Mono'", marginBottom: 6, opacity: 0.8 }}>{label}</div>
-      <div style={{ fontSize: 17, color: col.text, fontFamily: "'IBM Plex Sans'", fontWeight: 600 }}>{value}</div>
+    <div style={{ flex: 1, borderRight: `1px solid ${C.border}`, padding: "0 24px" }}>
+      <div style={{ fontSize: 9, letterSpacing: 2, color: C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 10, opacity: 0.7 }}>{label}</div>
+      <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
+        {[1,2,3,4].map(i => (
+          <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: i <= dots ? col.dot : C.border }} />
+        ))}
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 600, color: col.text }}>{value}</div>
     </div>
   );
 }
 
 function Label({ children, color }) {
   return (
-    <div style={{ fontSize: 11, letterSpacing: 3, color: color || C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+    <div style={{ fontSize: 11, letterSpacing: 3, color: color || C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 10, textAlign: "left", display: "flex", alignItems: "center", gap: 6 }}>
       <div style={{ width: 3, height: 12, background: color || C.accent, borderRadius: 2, flexShrink: 0 }} />
       {children}
     </div>
@@ -198,7 +208,7 @@ function Label({ children, color }) {
 
 function Card({ children, style = {}, glow }) {
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 18px", boxShadow: glow ? `0 0 28px ${glow}` : "none", ...style }}>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "16px 18px", textAlign: "left", boxShadow: glow ? `0 0 28px ${glow}` : "none", ...style }}>
       {children}
     </div>
   );
@@ -327,7 +337,7 @@ export default function App() {
                 <div style={{ width: 5, height: 5, borderRadius: "50%", background: C.accent }} />
                 <span style={{ fontSize: 11, letterSpacing: "0.15em", color: C.accent, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase" }}>Role Intelligence</span>
               </div>
-              <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0, textAlign: "left", fontWeight: 400 }}>
+              <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0, textAlign: "left", textAlign: "left", fontWeight: 400 }}>
                 Find out what the hiring manager perceives before you walk in.
               </p>
             </div>
@@ -385,7 +395,7 @@ export default function App() {
     return (
       <>
         <style>{css}</style>
-        <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "28px 20px" }}>
+        <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "28px 20px", textAlign: "left" }}>
           <div style={{ maxWidth: 780, margin: "0 auto" }}>
 
             {/* Nav */}
@@ -414,19 +424,25 @@ export default function App() {
                   <div style={{ borderLeft: `2px solid ${fitColor(r.fitVerdict)}40`, paddingLeft: 14 }}>
                     <div style={{ fontSize: 10, letterSpacing: 2, color: C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 6 }}>REALITY CHECK</div>
                     <div style={{ fontSize: 18, color: fitColor(r.fitVerdict), fontWeight: 600, fontFamily: "'IBM Plex Sans'", marginBottom: 8 }}>{r.fitVerdict}</div>
-                    <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0, textAlign: "left" }}>{r.fitReason}</p>
+                    <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0, textAlign: "left", textAlign: "left" }}>{r.fitReason}</p>
                   </div>
                   <div style={{ borderLeft: `2px solid ${applyColor(r.applyVerdict)}40`, paddingLeft: 14 }}>
                     <div style={{ fontSize: 10, letterSpacing: 2, color: C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 6 }}>SHOULD YOU APPLY?</div>
                     <div style={{ fontSize: 18, color: applyColor(r.applyVerdict), fontWeight: 600, fontFamily: "'IBM Plex Sans'", marginBottom: 8 }}>{r.applyVerdict}</div>
-                    <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0, textAlign: "left" }}>{r.applyReason}</p>
+                    <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0, textAlign: "left", textAlign: "left" }}>{r.applyReason}</p>
                   </div>
                 </div>
               </div>
-              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 16, display: "flex", gap: 12 }}>
-                <Pill label="SKILLS"    value={r.skillsLevel}    type={r.skillsLevel === "High" ? "good"    : r.skillsLevel === "Medium" ? "warn" : "bad"} />
-                <Pill label="DOMAIN"    value={r.domainLevel}    type={r.domainLevel === "Strong" ? "good"  : r.domainLevel === "Moderate" ? "warn" : "bad"} />
-                <Pill label="SENIORITY" value={r.seniorityLevel} type={r.seniorityLevel === "Aligned" ? "good" : r.seniorityLevel === "Slight stretch" ? "warn" : "bad"} />
+              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 20, display: "flex", gap: 0 }}>
+                <div style={{ flex: 1, borderRight: "none", paddingLeft: 0, paddingRight: 24 }}>
+                  <Pill label="SKILLS"    value={r.skillsLevel}    type={r.skillsLevel === "High" ? "good"    : r.skillsLevel === "Medium" ? "warn" : "bad"} />
+                </div>
+                <div style={{ flex: 1, borderLeft: `1px solid ${C.border}`, paddingLeft: 24, paddingRight: 24 }}>
+                  <Pill label="DOMAIN"    value={r.domainLevel}    type={r.domainLevel === "Strong" ? "good"  : r.domainLevel === "Moderate" ? "warn" : "bad"} />
+                </div>
+                <div style={{ flex: 1, borderLeft: `1px solid ${C.border}`, paddingLeft: 24, paddingRight: 0 }}>
+                  <Pill label="SENIORITY" value={r.seniorityLevel} type={r.seniorityLevel === "Aligned" ? "good" : r.seniorityLevel === "Slight stretch" ? "warn" : "bad"} />
+                </div>
               </div>
             </Card>
 
