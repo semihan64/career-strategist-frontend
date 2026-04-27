@@ -22,7 +22,7 @@ skillsLevel: "High" or "Medium" or "Low"
 domainLevel: "Strong" or "Moderate" or "Weak"
 seniorityLevel: "Aligned" or "Slight stretch" or "Mismatch"
 
-mindsetBanner: ONE punchy sentence max 15 words. Decisive. If name known use it once. Examples: "Semihan, this is winnable — but only if you reposition your IAM narrative." / "Strong fit. Do not undersell yourself here." / "Real risk of rejection without a sharper story." Must be specific to this role and candidate.
+mindsetBanner: ONE sentence, max 20 words. Tone: blunt, direct, insider knowledge. Like a colleague who knows exactly how hiring works telling them the truth. If name is known use it once at the start. Reference something specific and real from their background or the gap. No em dashes. No hype. No corporate tone. Examples: "Aisha, your IAM background is genuinely rare here. The gap is the consulting story, not the skills." (this can be 2 short sentences if needed) / "You have the depth. The way you are telling it is what is losing the room." / "This role is within reach. One narrative shift changes everything."
 
 whyFit: exactly 2 bullets separated by | character. Each under 18 words. Specific signals only. No vague praise. Start each with a strong verb or noun.
 
@@ -379,26 +379,25 @@ export default function App() {
           <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 20, animation: "fadeUp 0.4s ease 0.15s both" }}>
           <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
             <div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase" }}>Your CV</label>
-                <span style={{ fontSize: 10, color: C.textDim, fontFamily: "'IBM Plex Mono'" }}>Edit as needed</span>
-              </div>
+              <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Your CV</label>
               <textarea value={cv} onChange={e => setCv(e.target.value)} rows={9}
                 style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7, transition: "border-color 0.2s" }}
                 onFocus={e => e.target.style.borderColor = C.accent}
                 onBlur={e => e.target.style.borderColor = C.border} />
+              <p style={{ fontSize: 11, color: C.textMuted, marginTop: 6, fontFamily: "'IBM Plex Sans'" }}>Pre-filled with your CV. Edit if needed.</p>
             </div>
             <div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase" }}>Job Description</label>
-                <span style={{ fontSize: 10, color: jd.length > 900 ? C.amber : C.textDim, fontFamily: "'IBM Plex Mono'", transition: "color 0.2s" }}>{jd.length} / 1000</span>
-              </div>
-              <textarea value={jd} onChange={e => { if (e.target.value.length <= 1000) { setJd(e.target.value); setError(""); } }}
+              <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Job Description</label>
+              <textarea value={jd} onChange={e => { if (e.target.value.length <= 5000) { setJd(e.target.value); setError(""); } }}
                 placeholder="Paste the job description here..." rows={9}
                 style={{ width: "100%", background: C.card, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7, transition: "border-color 0.2s" }}
                 onFocus={e => { if (!error) e.target.style.borderColor = C.accent; }}
                 onBlur={e => { if (!error) e.target.style.borderColor = C.border; }} />
-              {error && <p style={{ fontSize: 12, color: C.red, marginTop: 6 }}>{error}</p>}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+                <p style={{ fontSize: 11, color: C.textMuted, fontFamily: "'IBM Plex Sans'" }}>Paste the full job listing.</p>
+                <span style={{ fontSize: 11, color: jd.length > 4500 ? C.amber : C.textMuted, fontFamily: "'IBM Plex Mono'", transition: "color 0.2s" }}>{jd.length} / 5000</span>
+              </div>
+              {error && <p style={{ fontSize: 12, color: C.red, marginTop: 4 }}>{error}</p>}
             </div>
           </div>
 
@@ -432,7 +431,7 @@ export default function App() {
           <div style={{ maxWidth: 780, margin: "0 auto" }}>
 
             {/* Nav */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, animation: "fadeUp 0.3s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, animation: "fadeUp 0.3s ease" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
