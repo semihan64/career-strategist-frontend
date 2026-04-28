@@ -1,21 +1,21 @@
 import { useState } from "react";
 
-const SYSTEM_PROMPT = `You are an AI Career Strategist. You think like a senior hiring manager and insider recruiter — not a career coach. Direct, specific, honest. Never generic.
+const SYSTEM_PROMPT = `You are an AI Career Strategist. You think like a senior hiring manager and insider recruiter, not a career coach. Direct, specific, honest. Never generic.
 
-You will receive a candidate CV and a job description. The CV may contain the candidate's name — extract it if present.
+You will receive a candidate CV and a job description. The CV may contain the candidate's name, extract it if present.
 
 Return ONLY a valid JSON object. Plain ASCII only. No markdown, no backticks, no explanation.
 
 RULES FOR NAME USE:
 - Extract the candidate name from the CV if present, store in "candidateName"
 - Use the name ONLY in: mindsetBanner and whatToDoNext
-- Everywhere else use "you" / "your" — neutral tone
+- Everywhere else use "you" / "your", neutral tone
 - Do NOT repeat the name more than once per field
 - If no name found, set candidateName to "" and use neutral tone throughout
 
 JSON keys:
 
-candidateName: string — extracted from CV, or empty string
+candidateName: string, extracted from CV, or empty string
 
 matchScore: integer 0-100
 skillsLevel: "High" or "Medium" or "Low"
@@ -33,6 +33,23 @@ EXAMPLE 3 (low probability): "Honestly, this one is a bigger jump than it looks 
 EXAMPLE 4 (good structure, no dashes): "Aisha brings hands-on transformation delivery and process redesign, exactly what frontline change work demands. The consulting angle is the only thing to shore up before the interview."
 
 Now write one for this specific candidate and role. Use their name if known. Sound like a real person who read everything. No corporate words. No dashes of any kind. No em dashes. No hyphens used as pauses. No AI phrasing. Short sentences. Warm but direct.
+
+ERROR HANDLING AND INPUT INTERPRETATION:
+If the CV field is empty, is a job description, is just a name, or is unclear:
+- Do NOT say "cannot evaluate" or sound technical or dismissive
+- Do NOT use blunt system-like error messages
+- Acknowledge what the user likely did in a natural human way
+- Briefly explain the issue in plain language
+- Guide them on what to do next
+- Tone: calm, direct, human. No judgment, no blame, no robotic phrasing, no em dashes
+
+Style examples for mindsetBanner in these cases:
+- If CV appears to be a job description: "Looks like you may have pasted a job description here. Pop your own CV in the left box and I will give you the full picture."
+- If CV is empty or just a name: "I do not have enough of your background to work with yet. Paste your CV on the left and I will break down exactly where you stand."
+- If CV is very thin: "There is not much to go on here. The more of your background you share, the sharper the analysis will be."
+
+Still return a valid JSON object with the same structure. Populate fields helpfully based on whatever information is available. Avoid generic placeholders. Keep the same warm direct tone throughout.
+
 Return ONLY the JSON object. Nothing else.`;
 
 const C = {
@@ -55,7 +72,7 @@ const css = `
   ::-webkit-scrollbar-thumb{background:${C.accent};border-radius:2px}
   @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes spin{to{transform:rotate(360deg)}}
-  @media(max-width:640px){
+  @media(max-width:768px){
     .grid-2col{grid-template-columns:1fr !important}
     .score-grid{grid-template-columns:1fr !important}
     .pills-row{flex-direction:column !important; gap:8px !important}
@@ -160,7 +177,7 @@ function Label({ children, color }) {
 
 function Card({ children, style = {}, glow }) {
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", textAlign: "left", boxShadow: glow ? `0 0 28px ${glow}` : "none", ...style }}>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", textAlign: "left", minWidth: 0, wordBreak: "break-word", boxShadow: glow ? `0 0 28px ${glow}` : "none", ...style }}>
       {children}
     </div>
   );
@@ -183,7 +200,7 @@ function QCard({ q, whyAsking, intent, approach, mistake, num }) {
       </button>
       {open && (
         <div style={{ background: C.surface, padding: "14px 16px", display: "grid", gap: 12, animation: "fadeUp 0.2s ease" }}>
-          {/* Why asking — most prominent */}
+          {/* Why asking, most prominent */}
           <div style={{ background: `${C.amber}10`, border: `1px solid ${C.amber}30`, borderRadius: 6, padding: "8px 12px" }}>
             <div style={{ fontSize: 11, letterSpacing: 2, color: C.amber, marginBottom: 4, fontFamily: "'IBM Plex Mono'" }}>WHY THEY'RE ASKING THIS</div>
             <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: "'IBM Plex Sans'", fontWeight: 500 }}>{whyAsking}</p>
@@ -300,9 +317,9 @@ export default function App() {
             </div>
           </div>
 
-          {/* Hero copy block — Option B: Eyebrow above headline */}
+          {/* Hero copy block, Option B: Eyebrow above headline */}
           <div style={{ marginBottom: 0, animation: "fadeUp 0.5s ease 0.05s both", textAlign: "left", padding: "36px 0 40px" }}>
-            {/* Eyebrow — flat label, no pill */}
+            {/* Eyebrow, flat label, no pill */}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
               <div style={{ width: 16, height: 1, background: C.accent, flexShrink: 0 }} />
               <span style={{ fontSize: 10, letterSpacing: "0.2em", color: C.accent, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase" }}>Role Intelligence</span>
@@ -372,8 +389,8 @@ export default function App() {
     return (
       <>
         <style>{css}</style>
-        <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "clamp(16px,4vw,28px) clamp(16px,4vw,20px)", textAlign: "left" }}>
-          <div style={{ maxWidth: 780, margin: "0 auto" }}>
+        <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "clamp(16px,4vw,28px) clamp(16px,4vw,20px)", textAlign: "left", overflowX: "hidden" }}>
+          <div style={{ maxWidth: 780, margin: "0 auto", overflowX: "hidden", width: "100%" }}>
 
             {/* Nav */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, animation: "fadeUp 0.3s ease" }}>
@@ -385,7 +402,7 @@ export default function App() {
                 style={{ background: C.card, border: `1px solid ${C.border}`, color: C.textMuted, borderRadius: 6, padding: "7px 14px", fontSize: 11, cursor: "pointer", fontFamily: "'IBM Plex Mono'" }}>← NEW ROLE</button>
             </div>
 
-            {/* Mindset banner — name used here */}
+            {/* Mindset banner, name used here */}
             <MindsetBanner text={r.mindsetBanner || r.fitReason} verdict={r.fitVerdict} />
 
             {/* Score card */}
@@ -397,7 +414,7 @@ export default function App() {
                   </div>
                   <div style={{ fontSize: 10, color: C.textMuted, fontFamily: "'IBM Plex Mono'", letterSpacing: 3, marginTop: 4 }}>MATCH SCORE</div>
                 </div>
-                <div className="score-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div className="score-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, minWidth: 0 }}>
                   <div style={{ borderLeft: `2px solid ${fitColor(r.fitVerdict)}40`, paddingLeft: 14 }}>
                     <div style={{ fontSize: 10, letterSpacing: 2, color: C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 6 }}>REALITY CHECK</div>
                     <div style={{ fontSize: 18, color: fitColor(r.fitVerdict), fontWeight: 600, fontFamily: "'IBM Plex Sans'", marginBottom: 8 }}>{r.fitVerdict}</div>
@@ -410,7 +427,7 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 14, display: "flex", gap: 0 }}>
+              <div className="pills-row" style={{ borderTop: `1px solid ${C.border}`, paddingTop: 14, display: "flex", gap: 0 }}>
                 <div style={{ flex: 1, borderRight: "none", paddingLeft: 0, paddingRight: 24 }}>
                   <Pill label="SKILLS"    value={r.skillsLevel}    type={r.skillsLevel === "High" ? "good"    : r.skillsLevel === "Medium" ? "warn" : "bad"} />
                 </div>
