@@ -90,28 +90,7 @@ async function callClaude(_unused, userContent, cv, jd) {
   return JSON.parse(clean);
 }
 
-const SEMIHAN_CV = `Aisha O. Bello - Business Analyst
-5+ years experience in Financial Services, Fintech, SaaS, AI
 
-Current: Business Analyst at Paysafe (Feb 2025-present)
-- IAM Transformation Programme, SailPoint integration, application onboarding
-- Led project initiation, scope definition, requirements documentation
-- Facilitated stakeholder workshops, documented JML processes
-- Supported service transition and go-live readiness
-
-Previous: Business Analyst at ATechCoins (Dec 2022 - Jan 2025)
-- Requirements elicitation, user stories, acceptance criteria
-- Drove 5000+ app downloads in 72hrs, 25% acquisition growth
-- Defined KPIs and monitored performance metrics
-
-Also: Product Designer at ATechCoins (Oct 2021 - Dec 2022)
-- Redesigned workflows increasing transactions by 20%, satisfaction by 30%
-
-Skills: Requirements Elicitation, User Stories, Gap Analysis, Process Mapping,
-Stakeholder Management, SDLC, Agile, IAM, SailPoint, Data Migration,
-JIRA, Confluence, Power BI, Figma, BPMN
-
-Education: MSc & BSc Electronics & Computer Engineering, Lagos State University`;
 
 // ── Helpers ────────────────────────────────────────────────────
 
@@ -248,7 +227,7 @@ function MindsetBanner({ text, verdict }) {
 
 export default function App() {
   const [screen, setScreen]   = useState("input");
-  const [cv, setCv]           = useState(SEMIHAN_CV);
+  const [cv, setCv]           = useState("");
   const [jd, setJd]           = useState("");
   const [result, setResult]   = useState(null);
   const [loading, setLoading] = useState(false);
@@ -268,6 +247,7 @@ export default function App() {
 
   const [copiedPitch, setCopiedPitch] = useState(false);
   const [copiedAnswer, setCopiedAnswer] = useState(false);
+
 
 
 
@@ -314,9 +294,9 @@ export default function App() {
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(107,92,231,0.08)", border: `1px solid rgba(107,92,231,0.2)`, borderRadius: 20, padding: "5px 12px 5px 8px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(107,92,231,0.08)", border: "1px solid rgba(107,92,231,0.2)", borderRadius: 20, padding: "5px 12px 5px 8px" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.green }} />
-              <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "'IBM Plex Mono'" }}>Analysis ready</span>
+              <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "'IBM Plex Mono'" }}>Perceive is ready</span>
             </div>
           </div>
 
@@ -346,10 +326,10 @@ export default function App() {
             <div>
               <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Your CV</label>
               <textarea value={cv} onChange={e => setCv(e.target.value)} rows={9}
+                placeholder="Paste your entire CV here. Include your name at the top for a personalised analysis."
                 style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7, transition: "border-color 0.2s" }}
                 onFocus={e => e.target.style.borderColor = C.accent}
                 onBlur={e => e.target.style.borderColor = C.border} />
-              <p style={{ fontSize: 11, color: C.textMuted, marginTop: 6, fontFamily: "'IBM Plex Sans'" }}>Pre-filled with your CV. Edit if needed.</p>
             </div>
             <div>
               <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Job Description</label>
@@ -358,9 +338,8 @@ export default function App() {
                 style={{ width: "100%", background: C.card, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7, transition: "border-color 0.2s" }}
                 onFocus={e => { if (!error) e.target.style.borderColor = C.accent; }}
                 onBlur={e => { if (!error) e.target.style.borderColor = C.border; }} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-                <p style={{ fontSize: 11, color: C.textMuted, fontFamily: "'IBM Plex Sans'" }}>Paste the full job listing.</p>
-                <span style={{ fontSize: 11, color: jd.length > 4500 ? C.amber : C.textMuted, fontFamily: "'IBM Plex Mono'", transition: "color 0.2s" }}>{jd.length} / 5000</span>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
+                <span style={{ fontSize: 11, color: jd.length > 4500 ? C.amber : C.textMuted, fontFamily: "'IBM Plex Mono'", transition: "color 0.2s", opacity: 0.7 }}>{jd.length} / 5000 characters</span>
               </div>
               {error && <p style={{ fontSize: 12, color: C.red, marginTop: 4 }}>{error}</p>}
             </div>
@@ -374,6 +353,7 @@ export default function App() {
               ? (<><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> {loadingMsg}</>)
               : "Analyse this role →"}
           </button>
+          <p style={{ fontSize: 11, color: C.textMuted, textAlign: "center", marginTop: 10, fontFamily: "'IBM Plex Sans'", opacity: 0.7 }}>Your CV and job description are not stored. All analysis happens in real time.</p>
           </div>
         </div>
       </div>
