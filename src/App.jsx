@@ -333,7 +333,7 @@ export default function App() {
             </div>
             <div>
               <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Job Description</label>
-              <textarea value={jd} onChange={e => { if (e.target.value.length <= 5000) { setJd(e.target.value); setError(""); } }}
+              <textarea value={jd} onChange={e => { setJd(e.target.value.slice(0, 5000)); setError(""); }}
                 placeholder="Paste the job description here..." rows={9}
                 style={{ width: "100%", background: C.card, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7, transition: "border-color 0.2s" }}
                 onFocus={e => { if (!error) e.target.style.borderColor = C.accent; }}
