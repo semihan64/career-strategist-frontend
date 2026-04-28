@@ -312,10 +312,11 @@ export default function App() {
     <>
       <style>{css}</style>
       <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "0", textAlign: "left", paddingTop: 64 }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 clamp(16px, 4vw, 40px) 24px" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(24px, 5vw, 60px) 24px" }}>
 
           {/* Perceive header bar */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(16px, 4vw, 40px)", borderBottom: `1px solid ${C.border}`, position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 860, zIndex: 100, background: C.bg, animation: "fadeUp 0.4s ease" }}>
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: C.bg, borderBottom: `1px solid ${C.border}`, animation: "fadeUp 0.4s ease" }}>
+            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px clamp(24px,5vw,60px)", display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
@@ -323,6 +324,7 @@ export default function App() {
             <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(16,185,129,0.06)", border: "0.5px solid rgba(16,185,129,0.2)", borderRadius: 20, padding: "5px 14px 5px 10px" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.green, flexShrink: 0 }} />
               <span style={{ fontSize: 11, color: C.green, fontFamily: "'IBM Plex Mono'", opacity: 0.85 }}>No sign up. No data stored.</span>
+            </div>
             </div>
           </div>
 
@@ -421,17 +423,18 @@ export default function App() {
       <>
         <style>{css}</style>
         <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "clamp(16px,4vw,28px) clamp(16px,4vw,20px)", paddingTop: 72, textAlign: "left", overflowX: "hidden" }}>
-          <div style={{ maxWidth: 780, margin: "0 auto", overflowX: "hidden", width: "100%" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", overflowX: "hidden", width: "100%" }}>
 
             {/* Nav */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(16px,4vw,20px)", borderBottom: `1px solid ${C.border}`, position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 780, zIndex: 100, background: C.bg, animation: "fadeUp 0.3s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: C.bg, borderBottom: `1px solid ${C.border}`, animation: "fadeUp 0.3s ease" }}>
+            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "14px clamp(24px,5vw,60px)", display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
             </div>
               <button onClick={() => { setResult(null); setScreen("input"); }}
                 style={{ background: C.card, border: `1px solid ${C.border}`, color: C.textMuted, borderRadius: 6, padding: "7px 14px", fontSize: 11, cursor: "pointer", fontFamily: "'IBM Plex Mono'" }}>← NEW ROLE</button>
-            </div>
+            </div></div>
 
             {/* Mindset banner, name used here */}
             <MindsetBanner text={r.mindsetBanner || r.fitReason} verdict={r.fitVerdict} />
