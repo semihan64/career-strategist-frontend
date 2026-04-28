@@ -285,7 +285,7 @@ export default function App() {
       clearInterval(msgInterval);
       const msg = err.message || "";
       if (msg.includes("analyses for this hour") || msg.includes("Too many") || msg.includes("429")) {
-        setError("You're all out for now. Come back in an hour.");
+        setError("You're on a roll. Check back in an hour.");
       } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("fetch")) {
         setError("Can't reach the server. Check your connection and try again.");
       } else if (msg.includes("Input too long") && (cv.length > 7500 || jd.length > 9500)) {
@@ -370,12 +370,12 @@ export default function App() {
             </div>
           </div>
 
-          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 28, animation: "fadeUp 0.4s ease 0.15s both" }}>
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 24, animation: "fadeUp 0.4s ease 0.15s both" }}>
           <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
             <div>
               <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Your CV</label>
               <textarea value={cv} onChange={e => setCv(e.target.value.slice(0, 8000))} rows={9}
-                placeholder="Paste your entire CV here. Include your name at the top for a personalised analysis."
+                placeholder="Paste your CV here. Include your name for a personalised analysis."
                 style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7, transition: "border-color 0.2s" }}
                 onFocus={e => e.target.style.borderColor = C.accent}
                 onBlur={e => e.target.style.borderColor = C.border} />
@@ -391,7 +391,8 @@ export default function App() {
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
                 <span style={{ fontSize: 11, color: jd.length > 9000 ? C.amber : C.textMuted, fontFamily: "'IBM Plex Mono'", transition: "color 0.2s", opacity: 0.7 }}>{jd.length} / 10000 characters</span>
               </div>
-              {error && <p style={{ fontSize: 12, color: C.red, marginTop: 4 }}>{error}</p>}
+
+
             </div>
           </div>
 
@@ -403,6 +404,11 @@ export default function App() {
               ? (<><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} /> {loadingMsg}</>)
               : "Analyse this role →"}
           </button>
+          {error && (
+            <div style={{ marginTop: 12, padding: "10px 16px", borderRadius: 8, background: error.includes("on a roll") ? "rgba(245,158,11,0.08)" : "rgba(239,68,68,0.08)", border: `1px solid ${error.includes("on a roll") ? "rgba(245,158,11,0.25)" : "rgba(239,68,68,0.25)"}`, textAlign: "center" }}>
+              <p style={{ fontSize: 13, color: error.includes("on a roll") ? C.amber : C.red, margin: 0 }}>{error}</p>
+            </div>
+          )}
           <p style={{ fontSize: 11, color: C.textMuted, textAlign: "center", marginTop: 10, fontFamily: "'IBM Plex Sans'", opacity: 0.7 }}>Your CV and job description are not stored. All analysis happens in real time.</p>
           </div>
         </div>
