@@ -315,7 +315,7 @@ export default function App() {
         <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 clamp(16px, 4vw, 40px) 24px" }}>
 
           {/* Perceive header bar */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(16px, 4vw, 40px)", borderBottom: `1px solid ${C.border}`, position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: C.bg, animation: "fadeUp 0.4s ease" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(16px, 4vw, 40px)", borderBottom: `1px solid ${C.border}`, position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 860, zIndex: 100, background: C.bg, animation: "fadeUp 0.4s ease" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
@@ -424,7 +424,7 @@ export default function App() {
           <div style={{ maxWidth: 780, margin: "0 auto", overflowX: "hidden", width: "100%" }}>
 
             {/* Nav */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(16px,4vw,20px)", borderBottom: `1px solid ${C.border}`, position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: C.bg, animation: "fadeUp 0.3s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(16px,4vw,20px)", borderBottom: `1px solid ${C.border}`, position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 780, zIndex: 100, background: C.bg, animation: "fadeUp 0.3s ease" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
