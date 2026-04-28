@@ -283,7 +283,16 @@ export default function App() {
       setResult(data); setScreen("result");
     } catch (err) {
       clearInterval(msgInterval);
-      setError("Error: " + err.message);
+      const msg = err.message || "";
+      if (msg.includes("analyses for this hour") || msg.includes("Too many")) {
+        setError("You're all out for now. Come back in an hour.");
+      } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+        setError("Can't reach the server. Check your connection and try again.");
+      } else if (msg.includes("Input too long")) {
+        setError("That's a bit too long. Trim it slightly and try again.");
+      } else {
+        setError("Something went wrong. Give it a moment and try again.");
+      }
     }
     setLoading(false);
   };
@@ -302,18 +311,18 @@ export default function App() {
   if (screen === "input") return (
     <>
       <style>{css}</style>
-      <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "0", textAlign: "left" }}>
+      <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "0", textAlign: "left", paddingTop: 64 }}>
         <div style={{ maxWidth: 860, margin: "0 auto", padding: "0 clamp(16px, 4vw, 40px) 24px" }}>
 
           {/* Perceive header bar */}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0 16px", borderBottom: `1px solid ${C.border}`, marginBottom: 0, animation: "fadeUp 0.4s ease" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(16px, 4vw, 40px)", borderBottom: `1px solid ${C.border}`, position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: C.bg, animation: "fadeUp 0.4s ease" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(107,92,231,0.08)", border: "1px solid rgba(107,92,231,0.2)", borderRadius: 20, padding: "5px 12px 5px 8px" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.green }} />
-              <span style={{ fontSize: 11, color: C.textMuted, fontFamily: "'IBM Plex Mono'" }}>Perceive is ready</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(16,185,129,0.06)", border: "0.5px solid rgba(16,185,129,0.2)", borderRadius: 20, padding: "5px 14px 5px 10px" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.green, flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color: C.green, fontFamily: "'IBM Plex Mono'", opacity: 0.85 }}>No sign up. No data stored.</span>
             </div>
           </div>
 
@@ -338,25 +347,47 @@ export default function App() {
             </p>
           </div>
 
-          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 20, animation: "fadeUp 0.4s ease 0.15s both" }}>
+          {/* Feature strip */}
+          <div style={{ paddingBottom: 32, animation: "fadeUp 0.5s ease 0.3s both" }}>
+            <div style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textMuted, textTransform: "uppercase", fontFamily: "'IBM Plex Mono'", marginBottom: 14, opacity: 0.6 }}>What you get</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {[
+                { label: "Match score", icon: <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#7C3AED" strokeWidth="1.3"/><path d="M4.5 7.5l2 2 3-3.5" stroke="#7C3AED" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+                { label: "Hiring manager view", icon: <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5" r="2.5" stroke="#7C3AED" strokeWidth="1.3"/><path d="M2.5 12c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="#7C3AED" strokeWidth="1.3" strokeLinecap="round"/></svg> },
+                { label: "Why you might get rejected", icon: <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#7C3AED" strokeWidth="1.3"/><path d="M7 4.5v3M7 9.5v.5" stroke="#7C3AED" strokeWidth="1.3" strokeLinecap="round"/></svg> },
+                { label: "Your edge", icon: <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 2L8.5 5.5H12.5L9.5 7.8L10.8 11.5L7 9.2L3.2 11.5L4.5 7.8L1.5 5.5H5.5Z" stroke="#7C3AED" strokeWidth="1.2" strokeLinejoin="round"/></svg> },
+                { label: "30-second pitch", icon: <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h7M2 10h5" stroke="#7C3AED" strokeWidth="1.3" strokeLinecap="round"/></svg> },
+                { label: "Interview questions", icon: <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="2" stroke="#7C3AED" strokeWidth="1.3"/><path d="M5 5.5h4M5 8h3" stroke="#7C3AED" strokeWidth="1.3" strokeLinecap="round"/></svg> },
+                { label: "What to do next", icon: <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M8.5 4l3 3-3 3" stroke="#7C3AED" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+              ].map((item, i) => (
+                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(107,92,231,0.06)", border: "0.5px solid rgba(107,92,231,0.18)", borderRadius: 999, padding: "6px 12px 6px 9px", fontSize: 12, color: C.textMuted, animation: `fadeUp 0.4s ease ${0.35 + i * 0.08}s both`, cursor: "default" }}>
+                  {item.icon}
+                  {item.label}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 28, animation: "fadeUp 0.4s ease 0.15s both" }}>
           <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
             <div>
               <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Your CV</label>
-              <textarea value={cv} onChange={e => setCv(e.target.value)} rows={9}
+              <textarea value={cv} onChange={e => setCv(e.target.value.slice(0, 8000))} rows={9}
                 placeholder="Paste your entire CV here. Include your name at the top for a personalised analysis."
                 style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7, transition: "border-color 0.2s" }}
                 onFocus={e => e.target.style.borderColor = C.accent}
                 onBlur={e => e.target.style.borderColor = C.border} />
+
             </div>
             <div>
               <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Job Description</label>
-              <textarea value={jd} onChange={e => { setJd(e.target.value.slice(0, 5000)); setError(""); }}
+              <textarea value={jd} onChange={e => { setJd(e.target.value.slice(0, 10000)); setError(""); }}
                 placeholder="Paste the job description here..." rows={9}
                 style={{ width: "100%", background: C.card, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7, transition: "border-color 0.2s" }}
                 onFocus={e => { if (!error) e.target.style.borderColor = C.accent; }}
                 onBlur={e => { if (!error) e.target.style.borderColor = C.border; }} />
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
-                <span style={{ fontSize: 11, color: jd.length > 4500 ? C.amber : C.textMuted, fontFamily: "'IBM Plex Mono'", transition: "color 0.2s", opacity: 0.7 }}>{jd.length} / 5000 characters</span>
+                <span style={{ fontSize: 11, color: jd.length > 9000 ? C.amber : C.textMuted, fontFamily: "'IBM Plex Mono'", transition: "color 0.2s", opacity: 0.7 }}>{jd.length} / 10000 characters</span>
               </div>
               {error && <p style={{ fontSize: 12, color: C.red, marginTop: 4 }}>{error}</p>}
             </div>
@@ -389,11 +420,11 @@ export default function App() {
     return (
       <>
         <style>{css}</style>
-        <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "clamp(16px,4vw,28px) clamp(16px,4vw,20px)", textAlign: "left", overflowX: "hidden" }}>
+        <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "clamp(16px,4vw,28px) clamp(16px,4vw,20px)", paddingTop: 72, textAlign: "left", overflowX: "hidden" }}>
           <div style={{ maxWidth: 780, margin: "0 auto", overflowX: "hidden", width: "100%" }}>
 
             {/* Nav */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, animation: "fadeUp 0.3s ease" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(16px,4vw,20px)", borderBottom: `1px solid ${C.border}`, position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: C.bg, animation: "fadeUp 0.3s ease" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
               <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
