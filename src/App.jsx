@@ -284,11 +284,11 @@ export default function App() {
     } catch (err) {
       clearInterval(msgInterval);
       const msg = err.message || "";
-      if (msg.includes("analyses for this hour") || msg.includes("Too many")) {
+      if (msg.includes("analyses for this hour") || msg.includes("Too many") || msg.includes("429")) {
         setError("You're all out for now. Come back in an hour.");
-      } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+      } else if (msg.includes("Failed to fetch") || msg.includes("NetworkError") || msg.includes("fetch")) {
         setError("Can't reach the server. Check your connection and try again.");
-      } else if (msg.includes("Input too long")) {
+      } else if (msg.includes("Input too long") && (cv.length > 7500 || jd.length > 9500)) {
         setError("That's a bit too long. Trim it slightly and try again.");
       } else {
         setError("Something went wrong. Give it a moment and try again.");
