@@ -101,8 +101,8 @@ async function callClaude(_unused, userContent, cv, jd) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        cv: "Candidate CV:\n" + safeCv,
-        jd: "Job Description:\n" + safeJd,
+        cv: safeCv,
+        jd: safeJd,
       }),
     });
   } catch {
@@ -561,7 +561,7 @@ export default function App() {
       } else if (msg === "EMPTY_RESPONSE" || msg === "NO_JSON" || msg === "INVALID_JSON" || msg === "PARSE_ERROR") {
         setError("The analysis returned an unexpected response. Try again.");
       } else if (msg.includes("too long") || msg.includes("Too long") || msg.includes("Input too long") || msg.includes("413")) {
-        setError("Your input is being trimmed automatically. Try again.");
+        setError("The server rejected the input. Deploy the updated server.js to Railway to fix this.");
       } else {
         setError("Something went wrong: " + msg.slice(0, 120));
       }
