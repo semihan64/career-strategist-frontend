@@ -119,18 +119,31 @@ async function callClaude(_unused, userContent, cv, jd) {
   if (res.status === 404) throw new Error("SERVER_404");
   if (!res.ok || data.error) throw new Error(data.error || "HTTP_" + res.status);
 
-  // Handle both new { result } and legacy { content } formats
+  // Extract text from Claude response
   let clean = "";
   if (data.result) {
+    // New backend format: already clean JSON string
     clean = data.result;
-  } else {
-    const raw = (data.content || []).filter(b => b.type === "text").map(b => b.text || "").join("");
+  } else if (data.content && data.content.length > 0) {
+    // Raw Claude response format
+    const raw = data.content
+      .filter(b => b.type === "text")
+      .map(b => b.text || "")
+      .join("");
     if (!raw) throw new Error("EMPTY_RESPONSE");
-    clean = raw.replace("```json", "").replace("```", "").trim();
-    const s = clean.indexOf("{");
-    const e = clean.lastIndexOf("}");
+    // Strip all markdown fences (multiline)
+    const stripped = raw
+      .split("\n")
+      .filter(line => !line.match(/^```/))
+      .join("\n")
+      .trim();
+    // Find outermost JSON object
+    const s = stripped.indexOf("{");
+    const e = stripped.lastIndexOf("}");
     if (s === -1 || e === -1) throw new Error("NO_JSON");
-    clean = clean.slice(s, e + 1);
+    clean = stripped.slice(s, e + 1);
+  } else {
+    throw new Error("EMPTY_RESPONSE");
   }
 
   clean = clean
@@ -561,7 +574,7 @@ export default function App() {
       } else if (msg === "EMPTY_RESPONSE" || msg === "NO_JSON" || msg === "INVALID_JSON" || msg === "PARSE_ERROR") {
         setError("The analysis returned an unexpected response. Try again.");
       } else if (msg.includes("too long") || msg.includes("Too long") || msg.includes("Input too long") || msg.includes("413")) {
-        setError("The server rejected the input. Deploy the updated server.js to Railway to fix this.");
+        setError("Something went wrong. Give it a moment and try again.");
       } else {
         setError("Something went wrong: " + msg.slice(0, 120));
       }
