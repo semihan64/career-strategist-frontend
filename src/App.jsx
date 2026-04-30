@@ -70,20 +70,30 @@ async function callClaude(cv, jd) {
   if (res.status === 404) throw new Error("SERVER_404");
   if (!res.ok || data.error) throw new Error(data.error || "HTTP_" + res.status);
 
-  let clean = "";
+  // Extract raw text from either response format
+  let raw = "";
   if (data.result) {
-    clean = data.result;
+    raw = data.result;
   } else if (data.content && data.content.length > 0) {
-    const raw = data.content.filter(b => b.type === "text").map(b => b.text || "").join("");
-    if (!raw) throw new Error("EMPTY_RESPONSE");
-    const stripped = raw.split("\n").filter(line => !line.startsWith("```")).join("\n").trim();
-    const s = stripped.indexOf("{");
-    const e = stripped.lastIndexOf("}");
-    if (s === -1 || e === -1) throw new Error("NO_JSON");
-    clean = stripped.slice(s, e + 1);
-  } else {
-    throw new Error("EMPTY_RESPONSE");
+    raw = data.content.filter(b => b.type === "text").map(b => b.text || "").join("");
   }
+  if (!raw) throw new Error("EMPTY_RESPONSE");
+
+  // Strip markdown fences line by line
+  const lines = raw.split("\n");
+  const kept = [];
+  for (let i = 0; i < lines.length; i++) {
+    const t = lines[i].trim();
+    if (t === "```json" || t === "```") continue;
+    kept.push(lines[i]);
+  }
+  const stripped = kept.join("\n").trim();
+
+  // Find outermost JSON object
+  const s = stripped.indexOf("{");
+  const e = stripped.lastIndexOf("}");
+  if (s === -1 || e === -1) throw new Error("NO_JSON");
+  const clean = stripped.slice(s, e + 1);
 
   clean = clean
     .split("\u2018").join("'").split("\u2019").join("'")
