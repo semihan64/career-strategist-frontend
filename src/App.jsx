@@ -264,7 +264,7 @@ function QCard({ q, whyAsking, intent, approach, mistake, num }) {
           </div>
           {[
             ["What a strong answer shows", intent, C.accentBright],
-            ["How you should approach it", approach, C.green],
+            ["How to approach the question", approach, C.green],
             ["Mistake to avoid", mistake, C.red],
           ].map(([lbl, val, col]) => (
             <div key={lbl}>
@@ -449,9 +449,9 @@ export default function App() {
     const actions = pipeSplit(r.whatToDoNext);
 
     const tabs = [
-      { id: "fit",       label: "Your Fit" },
-      { id: "pitch",     label: "Your Pitch" },
-      { id: "interview", label: "Interview" },
+      { id: "fit",       label: "How You Land" },
+      { id: "pitch",     label: "Your Story" },
+      { id: "interview", label: "In The Room" },
     ];
 
     return (
