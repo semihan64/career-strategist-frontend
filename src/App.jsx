@@ -285,6 +285,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [copiedPitch, setCopiedPitch] = useState(false);
   const [copiedAnswer, setCopiedAnswer] = useState(false);
+  const [activeTab, setActiveTab] = useState("fit");
 
   const MSGS = [
     "Reading the room…", "Thinking like a hiring manager…",
@@ -432,6 +433,12 @@ export default function App() {
     const rej     = pipeSplit(r.rejectionRisk);
     const actions = pipeSplit(r.whatToDoNext);
 
+    const tabs = [
+      { id: "fit",       label: "Your Fit" },
+      { id: "pitch",     label: "Your Pitch" },
+      { id: "interview", label: "Interview" },
+    ];
+
     return (
       <>
         <style>{G}</style>
@@ -444,7 +451,7 @@ export default function App() {
                 <span style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 400, color: C.text }}>Perceive</span>
                 <span style={{ fontFamily: C.serif, fontSize: 24, color: C.accent }}>.</span>
               </div>
-              <button onClick={() => { setResult(null); setScreen("input"); }}
+              <button onClick={() => { setResult(null); setScreen("input"); setActiveTab("fit"); }}
                 style={{ background: "rgba(107,92,231,0.08)", border: `1px solid rgba(107,92,231,0.2)`, color: C.accentBright, borderRadius: 8, padding: "7px 16px", fontSize: 11, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.1em", transition: "background 0.2s" }}
                 onMouseEnter={e => e.currentTarget.style.background = "rgba(107,92,231,0.15)"}
                 onMouseLeave={e => e.currentTarget.style.background = "rgba(107,92,231,0.08)"}>
@@ -455,32 +462,31 @@ export default function App() {
 
           <div style={{ maxWidth: 1200, margin: "0 auto", padding: "clamp(16px,3vw,28px) clamp(16px,4vw,28px) 40px" }}>
 
-            {/* Mindset banner */}
+            {/* ── Always visible: Mindset + Score ── */}
             <MindsetBanner text={r.mindsetBanner || r.fitReason} verdict={r.fitVerdict} />
 
-            {/* Score card */}
-            <Card style={{ marginBottom: 14, animation: "fadeUp 0.4s ease 0.05s both" }}>
+            <Card style={{ marginBottom: 20, animation: "fadeUp 0.4s ease 0.05s both" }}>
               <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 28, alignItems: "start", marginBottom: 18 }}>
                 <div>
                   <div style={{ fontFamily: C.serif, fontSize: 80, fontWeight: 300, color: C.text, lineHeight: 0.9, letterSpacing: "-2px" }}>
-                    {r.matchScore}<span style={{ fontSize: 30, color: C.textDim, fontWeight: 300, letterSpacing: 0 }}>%</span>
+                    {r.matchScore}<span style={{ fontSize: 30, color: C.textDim, fontWeight: 300 }}>%</span>
                   </div>
                   <div style={{ fontSize: 9, color: C.textDim, fontFamily: C.mono, letterSpacing: "0.2em", marginTop: 8, textTransform: "uppercase" }}>Match Score</div>
                 </div>
                 <div className="score-grid score-card-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, minWidth: 0 }}>
                   <div style={{ borderLeft: `2px solid ${fitColor(r.fitVerdict)}30`, paddingLeft: 18, textAlign: "left" }}>
                     <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Reality Check</div>
-                    <div style={{ fontSize: 20, color: fitColor(r.fitVerdict), fontWeight: 600, fontFamily: C.sans, marginBottom: 10 }}>{r.fitVerdict}</div>
+                    <div style={{ fontSize: 20, color: fitColor(r.fitVerdict), fontWeight: 600, marginBottom: 10 }}>{r.fitVerdict}</div>
                     <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.65, margin: 0, fontWeight: 300, textAlign: "left" }}>{r.fitReason}</p>
                   </div>
                   <div style={{ borderLeft: `2px solid ${applyColor(r.applyVerdict)}30`, paddingLeft: 18, textAlign: "left" }}>
                     <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Should You Apply?</div>
-                    <div style={{ fontSize: 20, color: applyColor(r.applyVerdict), fontWeight: 600, fontFamily: C.sans, marginBottom: 10 }}>{r.applyVerdict}</div>
+                    <div style={{ fontSize: 20, color: applyColor(r.applyVerdict), fontWeight: 600, marginBottom: 10 }}>{r.applyVerdict}</div>
                     <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.65, margin: 0, fontWeight: 300, textAlign: "left" }}>{r.applyReason}</p>
                   </div>
                 </div>
               </div>
-              <div className="pills-row" style={{ borderTop: `1px solid ${C.border}`, paddingTop: 18, display: "flex", gap: 0 }}>
+              <div className="pills-row" style={{ borderTop: `1px solid ${C.border}`, paddingTop: 18, display: "flex" }}>
                 <Pill label="Skills" value={r.skillsLevel} type={r.skillsLevel === "High" ? "good" : r.skillsLevel === "Medium" ? "warn" : "bad"} />
                 <div style={{ width: 1, background: C.border }} />
                 <Pill label="Domain" value={r.domainLevel} type={r.domainLevel === "Strong" ? "good" : r.domainLevel === "Moderate" ? "warn" : "bad"} />
@@ -489,83 +495,115 @@ export default function App() {
               </div>
             </Card>
 
-            {/* Why fit + Edge */}
-            <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-              <Card style={{ animation: "fadeUp 0.4s ease 0.1s both" }}>
-                <SectionLabel color={C.green}>Why You Fit</SectionLabel>
-                <BulletList items={whyFit} color={C.green} />
-              </Card>
-              <Card style={{ animation: "fadeUp 0.4s ease 0.13s both" }}>
-                <SectionLabel color={C.accentBright}>Your Edge</SectionLabel>
-                <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.edge}</p>
-              </Card>
+            {/* ── Tabs ── */}
+            <div style={{ display: "flex", gap: 4, marginBottom: 20, background: C.surface, borderRadius: 12, padding: 4, border: `1px solid ${C.border}` }}>
+              {tabs.map(tab => (
+                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    flex: 1, padding: "10px 16px", border: "none", borderRadius: 9, cursor: "pointer",
+                    fontFamily: C.sans, fontSize: 13, fontWeight: activeTab === tab.id ? 500 : 300,
+                    color: activeTab === tab.id ? C.text : C.textMuted,
+                    background: activeTab === tab.id ? C.card : "transparent",
+                    boxShadow: activeTab === tab.id ? `0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px ${C.border}` : "none",
+                    transition: "all 0.2s",
+                  }}>
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            {/* HM Lens + Rejection */}
-            <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-              <Card style={{ animation: "fadeUp 0.4s ease 0.16s both" }}>
-                <SectionLabel color={C.amber}>Hiring Manager Lens</SectionLabel>
-                <BulletList items={hm} color={C.amber} />
-                <Divider />
-                <SectionLabel color={C.red}>Red Flags They'll Notice</SectionLabel>
-                <BulletList items={flags} color={C.red} />
-              </Card>
-              <Card style={{ animation: "fadeUp 0.4s ease 0.19s both" }}>
-                <SectionLabel color={C.red}>Why You Might Get Rejected</SectionLabel>
-                <BulletList items={rej} color={C.red} />
-                <Divider />
-                <SectionLabel color={C.accentBright}>What You Should Do Next</SectionLabel>
-                <ActionList items={actions} />
-              </Card>
-            </div>
+            {/* ── Tab: Your Fit ── */}
+            {activeTab === "fit" && (
+              <div style={{ animation: "fadeUp 0.3s ease both" }}>
+                <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                  <Card>
+                    <SectionLabel color={C.green}>Why You Fit</SectionLabel>
+                    <BulletList items={whyFit} color={C.green} />
+                  </Card>
+                  <Card>
+                    <SectionLabel color={C.accentBright}>Your Edge</SectionLabel>
+                    <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.edge}</p>
+                  </Card>
+                </div>
+                <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                  <Card>
+                    <SectionLabel color={C.amber}>Hiring Manager Lens</SectionLabel>
+                    <BulletList items={hm} color={C.amber} />
+                    <Divider />
+                    <SectionLabel color={C.red}>Red Flags They'll Notice</SectionLabel>
+                    <BulletList items={flags} color={C.red} />
+                  </Card>
+                  <Card>
+                    <SectionLabel color={C.red}>Why You Might Get Rejected</SectionLabel>
+                    <BulletList items={rej} color={C.red} />
+                    <Divider />
+                    <SectionLabel color={C.accentBright}>What You Should Do Next</SectionLabel>
+                    <ActionList items={actions} />
+                  </Card>
+                </div>
+              </div>
+            )}
 
-            {/* Pitch */}
-            <Card style={{ marginBottom: 12, animation: "fadeUp 0.4s ease 0.22s both" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <SectionLabel color={C.accentBright}>Your 30-Second Pitch</SectionLabel>
-                <button onClick={() => copyText(r.pitch, setCopiedPitch)}
-                  style={{ background: "none", border: `1px solid ${C.border}`, color: copiedPitch ? C.green : C.textDim, borderRadius: 6, padding: "5px 12px", fontSize: 10, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.08em", transition: "all 0.2s" }}>
-                  {copiedPitch ? "COPIED ✓" : "COPY"}
-                </button>
+            {/* ── Tab: Your Pitch ── */}
+            {activeTab === "pitch" && (
+              <div style={{ animation: "fadeUp 0.3s ease both" }}>
+                <Card style={{ marginBottom: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                    <SectionLabel color={C.accentBright}>Your 30-Second Pitch</SectionLabel>
+                    <button onClick={() => copyText(r.pitch, setCopiedPitch)}
+                      style={{ background: "none", border: `1px solid ${C.border}`, color: copiedPitch ? C.green : C.textDim, borderRadius: 6, padding: "5px 12px", fontSize: 10, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.08em", transition: "all 0.2s" }}>
+                      {copiedPitch ? "COPIED ✓" : "COPY"}
+                    </button>
+                  </div>
+                  <div style={{ background: C.surface, borderRadius: 10, padding: "24px 24px", borderLeft: `3px solid ${C.accent}`, marginBottom: 20 }}>
+                    <p style={{ fontSize: 17, color: C.text, lineHeight: 1.9, fontStyle: "italic", fontFamily: C.serif, fontWeight: 300, margin: 0, textAlign: "left" }}>"{r.pitch}"</p>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "14px 16px", background: C.surface, borderRadius: 8 }}>
+                    <span style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", paddingTop: 4, flexShrink: 0 }}>Position as</span>
+                    <p style={{ fontSize: 15, color: C.accentBright, fontWeight: 500, lineHeight: 1.55, fontFamily: C.sans, margin: 0, textAlign: "left" }}>{r.positioning}</p>
+                  </div>
+                </Card>
+                <Card>
+                  <SectionLabel color={C.red}>Why You Might Get Rejected</SectionLabel>
+                  <BulletList items={rej} color={C.red} />
+                  <Divider />
+                  <SectionLabel color={C.accentBright}>What You Should Do Next</SectionLabel>
+                  <ActionList items={actions} />
+                </Card>
               </div>
-              <div style={{ background: C.surface, borderRadius: 10, padding: "18px 20px", borderLeft: `3px solid ${C.accent}`, marginBottom: 14 }}>
-                <p style={{ fontSize: 15, color: C.text, lineHeight: 1.85, fontStyle: "italic", fontFamily: C.serif, fontWeight: 300, margin: 0, textAlign: "left" }}>"{r.pitch}"</p>
-              </div>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                <span style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", paddingTop: 3, flexShrink: 0 }}>Position as</span>
-                <p style={{ fontSize: 14, color: C.accentBright, fontWeight: 500, lineHeight: 1.55, fontFamily: C.sans, margin: 0, textAlign: "left" }}>{r.positioning}</p>
-              </div>
-            </Card>
+            )}
 
-            {/* Interview strategy */}
-            <Card style={{ marginBottom: 12, animation: "fadeUp 0.4s ease 0.25s both" }}>
-              <SectionLabel color={C.accent}>Interview Strategy</SectionLabel>
-              <div style={{ background: C.surface, borderRadius: 10, padding: "14px 16px", marginBottom: 16, borderLeft: `3px solid ${C.amber}` }}>
-                <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.amber, marginBottom: 8, fontFamily: C.mono, textTransform: "uppercase" }}>What They're Really Testing</div>
-                <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.whatTheyAreTesting}</p>
+            {/* ── Tab: Interview ── */}
+            {activeTab === "interview" && (
+              <div style={{ animation: "fadeUp 0.3s ease both" }}>
+                <Card style={{ marginBottom: 12 }}>
+                  <SectionLabel color={C.accent}>Interview Strategy</SectionLabel>
+                  <div style={{ background: C.surface, borderRadius: 10, padding: "16px 18px", marginBottom: 18, borderLeft: `3px solid ${C.amber}` }}>
+                    <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.amber, marginBottom: 8, fontFamily: C.mono, textTransform: "uppercase", textAlign: "left" }}>What They're Really Testing</div>
+                    <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.whatTheyAreTesting}</p>
+                  </div>
+                  <QCard q={r.q1} whyAsking={r.q1whyAsking} intent={r.q1intent} approach={r.q1approach} mistake={r.q1mistake} num={1} />
+                  <QCard q={r.q2} whyAsking={r.q2whyAsking} intent={r.q2intent} approach={r.q2approach} mistake={r.q2mistake} num={2} />
+                  <QCard q={r.q3} whyAsking={r.q3whyAsking} intent={r.q3intent} approach={r.q3approach} mistake={r.q3mistake} num={3} />
+                </Card>
+                <Card style={{ marginBottom: 28 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                    <SectionLabel color={C.green}>Strong Answer — Use This as Your Template</SectionLabel>
+                    <button onClick={() => copyText(r.exampleAnswer, setCopiedAnswer)}
+                      style={{ background: "none", border: `1px solid ${C.border}`, color: copiedAnswer ? C.green : C.textDim, borderRadius: 6, padding: "5px 12px", fontSize: 10, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.08em" }}>
+                      {copiedAnswer ? "COPIED ✓" : "COPY"}
+                    </button>
+                  </div>
+                  <div style={{ background: C.surface, borderRadius: 10, padding: "18px 20px", borderLeft: `3px solid ${C.green}` }}>
+                    <p style={{ fontSize: 15, color: C.text, lineHeight: 1.9, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.exampleAnswer}</p>
+                  </div>
+                </Card>
               </div>
-              <QCard q={r.q1} whyAsking={r.q1whyAsking} intent={r.q1intent} approach={r.q1approach} mistake={r.q1mistake} num={1} />
-              <QCard q={r.q2} whyAsking={r.q2whyAsking} intent={r.q2intent} approach={r.q2approach} mistake={r.q2mistake} num={2} />
-              <QCard q={r.q3} whyAsking={r.q3whyAsking} intent={r.q3intent} approach={r.q3approach} mistake={r.q3mistake} num={3} />
-            </Card>
-
-            {/* Example answer */}
-            <Card style={{ marginBottom: 28, animation: "fadeUp 0.4s ease 0.28s both" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-                <SectionLabel color={C.green}>Strong Answer — Use This as Your Template</SectionLabel>
-                <button onClick={() => copyText(r.exampleAnswer, setCopiedAnswer)}
-                  style={{ background: "none", border: `1px solid ${C.border}`, color: copiedAnswer ? C.green : C.textDim, borderRadius: 6, padding: "5px 12px", fontSize: 10, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.08em", transition: "all 0.2s" }}>
-                  {copiedAnswer ? "COPIED ✓" : "COPY"}
-                </button>
-              </div>
-              <div style={{ background: C.surface, borderRadius: 10, padding: "18px 20px", borderLeft: `3px solid ${C.green}` }}>
-                <p style={{ fontSize: 15, color: C.text, lineHeight: 1.9, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.exampleAnswer}</p>
-              </div>
-            </Card>
+            )}
 
             {/* Analyse another */}
             <div style={{ textAlign: "center", paddingBottom: 32 }}>
-              <button onClick={() => { setResult(null); setJd(""); setScreen("input"); }}
+              <button onClick={() => { setResult(null); setJd(""); setScreen("input"); setActiveTab("fit"); }}
                 style={{ background: `linear-gradient(135deg, ${C.accent}, #5548CC)`, color: "#fff", border: "none", borderRadius: 10, padding: "14px 40px", fontSize: 14, fontWeight: 500, cursor: "pointer", fontFamily: C.sans, letterSpacing: "0.04em", boxShadow: "0 4px 24px rgba(107,92,231,0.3)", transition: "transform 0.2s, box-shadow 0.2s" }}
                 onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(107,92,231,0.45)"; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 4px 24px rgba(107,92,231,0.3)"; }}>
