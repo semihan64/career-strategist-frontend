@@ -382,7 +382,7 @@ export default function App() {
               <div style={{ textAlign: "left" }}>
                 <label style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8, textAlign: "left" }}>Your CV</label>
                 <textarea value={cv} onChange={e => setCv(e.target.value.slice(0, 8000))} rows={10}
-                  placeholder="Paste your CV here. Include your name for a personalised analysis."
+                  placeholder="Paste your full CV here for the sharpest analysis."
                   style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s" }}
                   onFocus={e => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 3px ${C.accentGlow}`; }}
                   onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; }} />
