@@ -2,14 +2,40 @@ import { useState } from "react";
 
 const PROXY_URL = "https://career-strategist-backend-production.up.railway.app/api/analyse";
 
+// ── Design tokens ─────────────────────────────────────────────
 const C = {
-  bg: "#08090D", surface: "#0F1018", card: "#13141F", cardHover: "#181928",
-  border: "#1E2030", borderLight: "#252740",
-  accent: "#6B5CE7", accentBright: "#8B7CF8",
-  amber: "#F59E0B", green: "#10B981", red: "#EF4444",
-  text: "#E2E4F0", textMuted: "#8892B0",
+  bg: "#08090D", surface: "#0D0E17", card: "#111220", cardHover: "#161728",
+  border: "#1E2035", borderLight: "#262840",
+  accent: "#6B5CE7", accentBright: "#9B8FF8", accentGlow: "rgba(107,92,231,0.15)",
+  amber: "#F59E0B", amberBg: "rgba(245,158,11,0.08)", amberBorder: "rgba(245,158,11,0.2)",
+  green: "#10B981", greenBg: "rgba(16,185,129,0.08)", greenBorder: "rgba(16,185,129,0.2)",
+  red: "#EF4444", redBg: "rgba(239,68,68,0.08)", redBorder: "rgba(239,68,68,0.2)",
+  text: "#E8E6FF", textMuted: "#8892B0", textDim: "#555870",
+  serif: "'Cormorant Garamond', serif",
+  mono: "'IBM Plex Mono', monospace",
+  sans: "'IBM Plex Sans', sans-serif",
 };
 
+// ── Global styles ─────────────────────────────────────────────
+const G = `
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: ${C.bg}; color: ${C.text}; font-family: ${C.sans}; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  textarea { resize: vertical; font-family: ${C.mono}; }
+  textarea::placeholder { color: ${C.textDim}; font-style: italic; }
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-thumb { background: ${C.accent}; border-radius: 2px; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @media(max-width:768px) {
+    .grid-2col { grid-template-columns: 1fr !important; }
+    .score-grid { grid-template-columns: 1fr !important; }
+    .pills-row { flex-wrap: wrap !important; gap: 8px !important; }
+    .hide-mobile { display: none !important; }
+    .input-grid { grid-template-columns: 1fr !important; }
+  }
+`;
 
 // ── cleanInput ────────────────────────────────────────────────
 function cleanInput(raw, maxChars) {
@@ -60,9 +86,7 @@ async function callClaude(cv, jd) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ cv: safeCv, jd: safeJd }),
     });
-  } catch {
-    throw new Error("NETWORK_ERROR");
-  }
+  } catch { throw new Error("NETWORK_ERROR"); }
 
   try { data = await res.json(); } catch { throw new Error("PARSE_ERROR"); }
 
@@ -70,7 +94,6 @@ async function callClaude(cv, jd) {
   if (res.status === 404) throw new Error("SERVER_404");
   if (!res.ok || data.error) throw new Error(data.error || "HTTP_" + res.status);
 
-  // Extract raw text from either response format
   let raw = "";
   if (data.result) {
     raw = data.result;
@@ -79,7 +102,6 @@ async function callClaude(cv, jd) {
   }
   if (!raw) throw new Error("EMPTY_RESPONSE");
 
-  // Strip markdown fences line by line
   const lines = raw.split("\n");
   const kept = [];
   for (let i = 0; i < lines.length; i++) {
@@ -88,8 +110,6 @@ async function callClaude(cv, jd) {
     kept.push(lines[i]);
   }
   const stripped = kept.join("\n").trim();
-
-  // Find outermost JSON object
   const s = stripped.indexOf("{");
   const e = stripped.lastIndexOf("}");
   if (s === -1 || e === -1) throw new Error("NO_JSON");
@@ -109,13 +129,41 @@ function pipeSplit(str) {
   return (str || "").split("|").map(s => s.trim()).filter(Boolean);
 }
 
-function BulletList({ items, dotColor, textSize = 13 }) {
+// ── UI Components ─────────────────────────────────────────────
+
+function SectionLabel({ children, color }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+      <div style={{ width: 3, height: 14, background: color || C.accent, borderRadius: 2, flexShrink: 0 }} />
+      <span style={{ fontSize: 10, letterSpacing: "0.2em", color: color || C.textMuted, fontFamily: C.mono, textTransform: "uppercase", fontWeight: 500 }}>{children}</span>
+    </div>
+  );
+}
+
+function Card({ children, style = {}, glow }) {
+  return (
+    <div style={{
+      background: C.card, border: `1px solid ${C.border}`, borderRadius: 12,
+      padding: "20px 22px", minWidth: 0, wordBreak: "break-word",
+      boxShadow: glow ? `0 0 32px ${glow}` : "0 2px 12px rgba(0,0,0,0.3)",
+      ...style
+    }}>
+      {children}
+    </div>
+  );
+}
+
+function Divider() {
+  return <div style={{ borderTop: `1px solid ${C.border}`, margin: "16px 0" }} />;
+}
+
+function BulletList({ items, color, size = 14 }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {items.map((line, i) => (
-        <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
-          <div style={{ width: 5, height: 5, background: dotColor, borderRadius: "50%", marginTop: 6, flexShrink: 0 }} />
-          <p style={{ fontSize: textSize, color: C.text, lineHeight: 1.6, fontFamily: "'IBM Plex Sans'" }}>{line}</p>
+        <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", textAlign: "left" }}>
+          <div style={{ width: 5, height: 5, background: color, borderRadius: "50%", marginTop: 7, flexShrink: 0, opacity: 0.8 }} />
+          <p style={{ fontSize: size, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, textAlign: "left", margin: 0 }}>{line}</p>
         </div>
       ))}
     </div>
@@ -124,11 +172,11 @@ function BulletList({ items, dotColor, textSize = 13 }) {
 
 function ActionList({ items }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {items.map((line, i) => (
-        <div key={i} style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
-          <div style={{ fontSize: 14, color: C.accentBright, fontFamily: "'IBM Plex Mono'", marginTop: 1, flexShrink: 0 }}>→</div>
-          <p style={{ fontSize: 14, color: C.text, lineHeight: 1.7, fontFamily: "'IBM Plex Sans'" }}>{line}</p>
+        <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", textAlign: "left" }}>
+          <span style={{ color: C.accentBright, fontFamily: C.mono, fontSize: 12, marginTop: 3, flexShrink: 0 }}>→</span>
+          <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, textAlign: "left", margin: 0 }}>{line}</p>
         </div>
       ))}
     </div>
@@ -137,72 +185,21 @@ function ActionList({ items }) {
 
 function Pill({ label, value, type }) {
   const col = {
-    good: { dot: C.green, text: C.green, border: "rgba(16,185,129,0.25)" },
-    warn: { dot: C.amber, text: C.amber, border: "rgba(245,158,11,0.25)" },
-    bad:  { dot: C.red,   text: C.red,   border: "rgba(239,68,68,0.25)" },
-    neu:  { dot: C.accentBright, text: C.accentBright, border: "rgba(139,124,248,0.25)" },
-  }[type] || { dot: C.accentBright, text: C.accentBright, border: "rgba(139,124,248,0.25)" };
+    good: C.green, warn: C.amber, bad: C.red, neu: C.accentBright,
+  }[type] || C.accentBright;
+
   const dots = value === "High" || value === "Aligned" || value === "Strong" ? 3
-             : value === "Medium" || value === "Moderate" || value === "Slight stretch" ? 2 : 1;
+    : value === "Medium" || value === "Moderate" || value === "Slight stretch" ? 2 : 1;
+
   return (
-    <div style={{ flex: 1, borderRight: `1px solid ${C.border}`, padding: "0 24px" }}>
-      <div style={{ fontSize: 9, letterSpacing: 2, color: C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 10, opacity: 0.7 }}>{label}</div>
-      <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
+    <div style={{ flex: 1, padding: "0 20px", textAlign: "left" }}>
+      <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 10, textTransform: "uppercase" }}>{label}</div>
+      <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
         {[1,2,3,4].map(i => (
-          <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: i <= dots ? col.dot : C.border }} />
+          <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i <= dots ? col : C.border, transition: "background 0.2s" }} />
         ))}
       </div>
-      <div style={{ fontSize: 13, fontWeight: 600, color: col.text }}>{value}</div>
-    </div>
-  );
-}
-
-function Label({ children, color }) {
-  return (
-    <div style={{ fontSize: 11, letterSpacing: 3, color: color || C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-      <div style={{ width: 3, height: 12, background: color || C.accent, borderRadius: 2, flexShrink: 0 }} />
-      {children}
-    </div>
-  );
-}
-
-function Card({ children, style = {} }) {
-  return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", minWidth: 0, wordBreak: "break-word", ...style }}>
-      {children}
-    </div>
-  );
-}
-
-function Divider() {
-  return <div style={{ borderTop: `1px solid ${C.border}`, margin: "12px 0" }} />;
-}
-
-function QCard({ q, whyAsking, intent, approach, mistake, num }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div style={{ border: `1px solid ${open ? C.borderLight : C.border}`, borderRadius: 8, overflow: "hidden", marginBottom: 8 }}>
-      <button onClick={() => setOpen(!open)} style={{ width: "100%", background: open ? C.cardHover : C.card, border: "none", padding: "12px 16px", cursor: "pointer", display: "flex", alignItems: "flex-start", gap: 12, textAlign: "left" }}>
-        <span style={{ fontSize: 10, fontFamily: "'IBM Plex Mono'", color: C.accent, minWidth: 20, paddingTop: 2 }}>Q{num}</span>
-        <span style={{ fontSize: 14, color: C.text, fontFamily: "'IBM Plex Sans'", flex: 1, lineHeight: 1.55 }}>{q}</span>
-        <div style={{ flexShrink: 0, width: 26, height: 26, borderRadius: 6, background: open ? C.accent : "rgba(107,92,231,0.12)", border: `1px solid ${open ? C.accent : "rgba(107,92,231,0.25)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <span style={{ color: open ? "#fff" : C.accentBright, fontSize: 12, display: "block", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
-        </div>
-      </button>
-      {open && (
-        <div style={{ background: C.surface, padding: "14px 16px", display: "grid", gap: 12 }}>
-          <div style={{ background: `${C.amber}10`, border: `1px solid ${C.amber}30`, borderRadius: 6, padding: "8px 12px" }}>
-            <div style={{ fontSize: 11, letterSpacing: 2, color: C.amber, marginBottom: 4, fontFamily: "'IBM Plex Mono'" }}>WHY THEY'RE ASKING THIS</div>
-            <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: "'IBM Plex Sans'", fontWeight: 500 }}>{whyAsking}</p>
-          </div>
-          {[["WHAT A STRONG ANSWER SHOWS", intent, C.accentBright], ["HOW YOU SHOULD APPROACH IT", approach, C.green], ["MISTAKE TO AVOID", mistake, C.red]].map(([lbl, val, col]) => (
-            <div key={lbl}>
-              <div style={{ fontSize: 11, letterSpacing: 2, color: col, marginBottom: 5, fontFamily: "'IBM Plex Mono'" }}>{lbl}</div>
-              <p style={{ fontSize: 14, color: C.text, lineHeight: 1.7, fontFamily: "'IBM Plex Sans'" }}>{val}</p>
-            </div>
-          ))}
-        </div>
-      )}
+      <div style={{ fontSize: 14, fontWeight: 600, color: col, fontFamily: C.sans }}>{value}</div>
     </div>
   );
 }
@@ -211,20 +208,66 @@ function MindsetBanner({ text, verdict }) {
   const isStrong = verdict === "Strong fit";
   const isSkip = verdict === "Low probability";
   const col = isStrong ? C.green : isSkip ? C.red : C.amber;
-  const bg = isStrong ? "rgba(16,185,129,0.12)" : isSkip ? "rgba(239,68,68,0.12)" : "rgba(245,158,11,0.12)";
-  const border = isStrong ? "rgba(16,185,129,0.3)" : isSkip ? "rgba(239,68,68,0.3)" : "rgba(245,158,11,0.3)";
+  const bg = isStrong ? C.greenBg : isSkip ? C.redBg : C.amberBg;
+  const border = isStrong ? C.greenBorder : isSkip ? C.redBorder : C.amberBorder;
+
   const Icon = () => isStrong
-    ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{flexShrink:0}}><circle cx="10" cy="10" r="8" stroke={col} strokeWidth="1.5"/><path d="M6.5 10.5l2.5 2.5 4.5-5" stroke={col} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    ? <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style={{flexShrink:0,marginTop:2}}><circle cx="11" cy="11" r="9" stroke={col} strokeWidth="1.5"/><path d="M7 11.5l3 3 5-6" stroke={col} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
     : isSkip
-    ? <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{flexShrink:0}}><circle cx="10" cy="10" r="8" stroke={col} strokeWidth="1.5"/><path d="M7 7l6 6M13 7l-6 6" stroke={col} strokeWidth="1.5" strokeLinecap="round"/></svg>
-    : <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{flexShrink:0}}><polygon points="10,3 18,17 2,17" fill="none" stroke={col} strokeWidth="1.5" strokeLinejoin="round"/><line x1="10" y1="9" x2="10" y2="13" stroke={col} strokeWidth="1.5" strokeLinecap="round"/><circle cx="10" cy="15.5" r="0.8" fill={col}/></svg>;
+    ? <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style={{flexShrink:0,marginTop:2}}><circle cx="11" cy="11" r="9" stroke={col} strokeWidth="1.5"/><path d="M8 8l6 6M14 8l-6 6" stroke={col} strokeWidth="1.5" strokeLinecap="round"/></svg>
+    : <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style={{flexShrink:0,marginTop:2}}><path d="M11 3L20 19H2L11 3Z" stroke={col} strokeWidth="1.5" strokeLinejoin="round" fill="none"/><line x1="11" y1="9" x2="11" y2="14" stroke={col} strokeWidth="1.5" strokeLinecap="round"/><circle cx="11" cy="16.5" r="1" fill={col}/></svg>;
+
   return (
-    <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: 10, padding: "16px 20px", marginBottom: 14, display: "flex", alignItems: "flex-start", gap: 14 }}>
+    <div style={{ background: bg, border: `1px solid ${border}`, borderRadius: 12, padding: "18px 22px", marginBottom: 16, display: "flex", alignItems: "flex-start", gap: 14, animation: "fadeUp 0.4s ease both" }}>
       <Icon />
-      <p style={{ fontSize: 17, color: col, fontWeight: 600, fontFamily: "'IBM Plex Sans'", lineHeight: 1.5, margin: 0 }}>{text}</p>
+      <p style={{ fontSize: 16, color: col, fontWeight: 500, fontFamily: C.sans, lineHeight: 1.6, margin: 0, textAlign: "left" }}>{text}</p>
     </div>
   );
 }
+
+function QCard({ q, whyAsking, intent, approach, mistake, num }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ border: `1px solid ${open ? C.borderLight : C.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 8, transition: "border-color 0.2s" }}>
+      <button onClick={() => setOpen(!open)} style={{ width: "100%", background: open ? C.cardHover : C.card, border: "none", padding: "14px 18px", cursor: "pointer", display: "flex", alignItems: "flex-start", gap: 14, textAlign: "left" }}>
+        <span style={{ fontSize: 10, fontFamily: C.mono, color: C.accent, minWidth: 22, paddingTop: 3, fontWeight: 500 }}>Q{num}</span>
+        <span style={{ fontSize: 14, color: C.text, fontFamily: C.sans, flex: 1, lineHeight: 1.6, fontWeight: 300 }}>{q}</span>
+        <div style={{ flexShrink: 0, width: 26, height: 26, borderRadius: 6, background: open ? C.accent : "rgba(107,92,231,0.1)", border: `1px solid ${open ? C.accent : "rgba(107,92,231,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
+          <span style={{ color: open ? "#fff" : C.accentBright, fontSize: 11, display: "block", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
+        </div>
+      </button>
+      {open && (
+        <div style={{ background: C.surface, padding: "16px 18px", display: "grid", gap: 14, animation: "fadeUp 0.2s ease" }}>
+          <div style={{ background: C.amberBg, border: `1px solid ${C.amberBorder}`, borderRadius: 8, padding: "12px 14px" }}>
+            <div style={{ fontSize: 10, letterSpacing: "0.18em", color: C.amber, marginBottom: 6, fontFamily: C.mono, textTransform: "uppercase" }}>Why they're asking this</div>
+            <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>{whyAsking}</p>
+          </div>
+          {[
+            ["What a strong answer shows", intent, C.accentBright],
+            ["How you should approach it", approach, C.green],
+            ["Mistake to avoid", mistake, C.red],
+          ].map(([lbl, val, col]) => (
+            <div key={lbl}>
+              <div style={{ fontSize: 10, letterSpacing: "0.18em", color: col, marginBottom: 6, fontFamily: C.mono, textTransform: "uppercase" }}>{lbl}</div>
+              <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{val}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Feature chip icons ────────────────────────────────────────
+const chipIcons = {
+  "Match score": <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#9B8FF8" strokeWidth="1.3"/><path d="M4.5 7.5l2 2 3-3.5" stroke="#9B8FF8" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+  "Hiring manager view": <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5" r="2.5" stroke="#9B8FF8" strokeWidth="1.3"/><path d="M2.5 12c0-2.5 2-4 4.5-4s4.5 1.5 4.5 4" stroke="#9B8FF8" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+  "Why you might get rejected": <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="#9B8FF8" strokeWidth="1.3"/><path d="M7 4.5v3M7 9.5v.5" stroke="#9B8FF8" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+  "Your edge": <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M7 2L8.5 5.5H12.5L9.5 7.8L10.8 11.5L7 9.2L3.2 11.5L4.5 7.8L1.5 5.5H5.5Z" stroke="#9B8FF8" strokeWidth="1.2" strokeLinejoin="round"/></svg>,
+  "30-second pitch": <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h7M2 10h5" stroke="#9B8FF8" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+  "Interview questions": <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="2" stroke="#9B8FF8" strokeWidth="1.3"/><path d="M5 5.5h4M5 8h3" stroke="#9B8FF8" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+  "What to do next": <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M8.5 4l3 3-3 3" stroke="#9B8FF8" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+};
 
 // ── App ────────────────────────────────────────────────────────
 export default function App() {
@@ -238,29 +281,24 @@ export default function App() {
   const [copiedPitch, setCopiedPitch] = useState(false);
   const [copiedAnswer, setCopiedAnswer] = useState(false);
 
-  const LOADING_MESSAGES = [
+  const MSGS = [
     "Reading the room…", "Thinking like a hiring manager…",
-    "Checking your positioning…", "Almost there, just a moment…",
-    "Pulling the honest read…", "Analysing your fit…", "Finding your edge…",
+    "Checking your positioning…", "Pulling the honest read…",
+    "Analysing your fit…", "Finding your edge…", "Almost there…",
   ];
 
   const handleAnalyse = async () => {
     if (!cv.trim()) { setError("Paste your CV on the left to get started."); return; }
     if (!jd.trim()) { setError("Paste a job description to continue."); return; }
     if (loading) return;
-    setError(""); setLoading(true); setResult(null);
-    setLoadingMsg(LOADING_MESSAGES[0]);
-    let msgIndex = 0;
-    const msgInterval = setInterval(() => {
-      msgIndex = (msgIndex + 1) % LOADING_MESSAGES.length;
-      setLoadingMsg(LOADING_MESSAGES[msgIndex]);
-    }, 2200);
+    setError(""); setLoading(true); setResult(null); setLoadingMsg(MSGS[0]);
+    let idx = 0;
+    const t = setInterval(() => { idx = (idx + 1) % MSGS.length; setLoadingMsg(MSGS[idx]); }, 2200);
     try {
       const data = await callClaude(cv, jd);
-      clearInterval(msgInterval);
-      setResult(data); setScreen("result");
+      clearInterval(t); setResult(data); setScreen("result");
     } catch (err) {
-      clearInterval(msgInterval);
+      clearInterval(t);
       const msg = err.message || "";
       if (msg === "CV_EMPTY") setError("Paste your CV on the left to get started.");
       else if (msg === "JD_EMPTY") setError("Paste a job description to continue.");
@@ -279,221 +317,260 @@ export default function App() {
   };
 
   const applyColor = v => v === "Apply now" ? C.green : v === "Skip this one" ? C.red : C.amber;
-  const fitColor   = v => v === "Strong fit" ? C.green : v === "Low probability" ? C.red : C.amber;
+  const fitColor = v => v === "Strong fit" ? C.green : v === "Low probability" ? C.red : C.amber;
 
-  // ── INPUT ──────────────────────────────────────────────────
+  // ── INPUT SCREEN ──────────────────────────────────────────
   if (screen === "input") return (
-    <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", paddingTop: 64 }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(24px,5vw,60px) 24px" }}>
+    <>
+      <style>{G}</style>
+      <div style={{ minHeight: "100vh", background: C.bg, paddingTop: 68 }}>
 
         {/* Nav */}
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: C.bg, borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "16px clamp(24px,5vw,60px)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text }}>Perceive</span>
-              <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
+        <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(8,9,13,0.92)", backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(20px,5vw,60px)", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <span style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 400, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
+              <span style={{ fontFamily: C.serif, fontSize: 24, color: C.accent }}>.</span>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, background: "rgba(16,185,129,0.06)", border: "0.5px solid rgba(16,185,129,0.2)", borderRadius: 20, padding: "5px 14px 5px 10px" }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.green }} />
-              <span style={{ fontSize: 11, color: C.green, fontFamily: "'IBM Plex Mono'" }}>No sign up. No data stored.</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, background: C.greenBg, border: `1px solid ${C.greenBorder}`, borderRadius: 20, padding: "5px 14px 5px 10px" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.green, animation: "pulse 2s infinite" }} />
+              <span style={{ fontSize: 11, color: C.green, fontFamily: C.mono }}>No sign up. No data stored.</span>
             </div>
           </div>
-        </div>
+        </nav>
 
-        {/* Hero */}
-        <div style={{ padding: "36px 0 40px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <div style={{ width: 16, height: 1, background: C.accent }} />
-            <span style={{ fontSize: 10, letterSpacing: "0.2em", color: C.accent, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase" }}>Role Intelligence</span>
-          </div>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 14 }}>
-            <div style={{ width: 4, background: C.accent, borderRadius: 2, flexShrink: 0, alignSelf: "stretch", minHeight: 90 }} />
-            <h1 style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: "clamp(36px,5vw,52px)", fontWeight: 300, color: C.text, lineHeight: 1.1, margin: 0 }}>
-              You're getting interviews…<br/>
-              <span style={{ fontStyle: "italic", color: C.accent }}>so why aren't you getting offers?</span>
-            </h1>
-          </div>
-          <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, paddingLeft: 20 }}>Most candidates walk in guessing. You won't.</p>
-        </div>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(20px,5vw,60px) 40px" }}>
 
-        {/* Feature chips */}
-        <div style={{ paddingBottom: 32 }}>
-          <div style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textMuted, textTransform: "uppercase", fontFamily: "'IBM Plex Mono'", marginBottom: 14, opacity: 0.6 }}>What you get</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {["Match score","Hiring manager view","Why you might get rejected","Your edge","30-second pitch","Interview questions","What to do next"].map((label, i) => (
-              <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(107,92,231,0.06)", border: "0.5px solid rgba(107,92,231,0.18)", borderRadius: 999, padding: "6px 12px", fontSize: 12, color: C.textMuted }}>
-                {label}
+          {/* Hero */}
+          <div style={{ padding: "44px 0 36px", animation: "fadeUp 0.6s ease both" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <div style={{ width: 18, height: 1, background: C.accent }} />
+              <span style={{ fontSize: 10, letterSpacing: "0.22em", color: C.accent, fontFamily: C.mono, textTransform: "uppercase" }}>Role Intelligence</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 18, marginBottom: 16 }}>
+              <div style={{ width: 3, background: `linear-gradient(to bottom, ${C.accent}, transparent)`, borderRadius: 2, flexShrink: 0, alignSelf: "stretch", minHeight: 80 }} />
+              <h1 style={{ fontFamily: C.serif, fontSize: "clamp(34px,5.5vw,58px)", fontWeight: 300, color: C.text, lineHeight: 1.08, margin: 0 }}>
+                You're getting interviews…<br/>
+                <span style={{ fontStyle: "italic", color: C.accent, fontWeight: 300 }}>so why aren't you getting offers?</span>
+              </h1>
+            </div>
+            <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, paddingLeft: 21, fontWeight: 300 }}>Most candidates walk in guessing. You won't.</p>
+          </div>
+
+          {/* Feature chips */}
+          <div style={{ paddingBottom: 32, animation: "fadeUp 0.6s ease 0.1s both" }}>
+            <div style={{ fontSize: 10, letterSpacing: "0.2em", color: C.textDim, textTransform: "uppercase", fontFamily: C.mono, marginBottom: 12 }}>What you get</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {Object.entries(chipIcons).map(([label, icon], i) => (
+                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(107,92,231,0.06)", border: `1px solid rgba(107,92,231,0.15)`, borderRadius: 999, padding: "6px 13px 6px 10px", fontSize: 12, color: C.textMuted, fontFamily: C.sans, fontWeight: 300 }}>
+                  {icon}{label}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Inputs */}
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 28, animation: "fadeUp 0.6s ease 0.15s both" }}>
+            <div className="input-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+              {/* CV */}
+              <div>
+                <label style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Your CV</label>
+                <textarea value={cv} onChange={e => setCv(e.target.value.slice(0, 8000))} rows={10}
+                  placeholder="Paste your CV here. Include your name for a personalised analysis."
+                  style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s" }}
+                  onFocus={e => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 3px ${C.accentGlow}`; }}
+                  onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; }} />
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Inputs */}
-        <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 24 }}>
-          <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 16 }}>
-            <div>
-              <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Your CV</label>
-              <textarea value={cv} onChange={e => setCv(e.target.value.slice(0, 8000))} rows={9}
-                placeholder="Paste your CV here. Include your name for a personalised analysis."
-                style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7 }}
-                onFocus={e => e.target.style.borderColor = C.accent}
-                onBlur={e => e.target.style.borderColor = C.border} />
-            </div>
-            <div>
-              <label style={{ fontSize: 11, letterSpacing: "0.15em", color: C.textMuted, fontFamily: "'IBM Plex Mono'", textTransform: "uppercase", display: "block", marginBottom: 8 }}>Job Description</label>
-              <textarea value={jd} onChange={e => { setJd(e.target.value.slice(0, 10000)); setError(""); }} rows={9}
-                placeholder="Paste the job description here..."
-                style={{ width: "100%", background: C.card, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 14, fontFamily: "'IBM Plex Mono'", outline: "none", lineHeight: 1.7 }}
-                onFocus={e => { if (!error) e.target.style.borderColor = C.accent; }}
-                onBlur={e => { if (!error) e.target.style.borderColor = C.border; }} />
-              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
-                <span style={{ fontSize: 11, color: jd.length > 9000 ? C.amber : C.textMuted, fontFamily: "'IBM Plex Mono'", opacity: 0.7 }}>{jd.length} / 10000 characters</span>
+              {/* JD */}
+              <div>
+                <label style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Job Description</label>
+                <textarea value={jd} onChange={e => { setJd(e.target.value.slice(0, 10000)); setError(""); }} rows={10}
+                  placeholder="Paste the job description here..."
+                  style={{ width: "100%", background: C.card, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s" }}
+                  onFocus={e => { if (!error) { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 3px ${C.accentGlow}`; } }}
+                  onBlur={e => { if (!error) { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; } }} />
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
+                  <span style={{ fontSize: 11, color: jd.length > 9000 ? C.amber : C.textDim, fontFamily: C.mono }}>{jd.length} / 10000</span>
+                </div>
               </div>
             </div>
+
+            {/* Analyse button */}
+            <button onClick={handleAnalyse} disabled={loading}
+              style={{ width: "100%", background: loading ? C.surface : `linear-gradient(135deg, ${C.accent}, #5548CC)`, color: "#fff", border: "none", borderRadius: 10, padding: "16px 0", fontSize: 14, fontWeight: 500, cursor: loading ? "not-allowed" : "pointer", fontFamily: C.sans, letterSpacing: "0.04em", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, transition: "opacity 0.2s, transform 0.15s, box-shadow 0.2s", boxShadow: loading ? "none" : "0 4px 24px rgba(107,92,231,0.3)" }}
+              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(107,92,231,0.45)"; }}}
+              onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = loading ? "none" : "0 4px 24px rgba(107,92,231,0.3)"; }}>
+              {loading
+                ? <><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />{loadingMsg}</>
+                : "Analyse this role →"}
+            </button>
+
+            {error && (
+              <div style={{ marginTop: 12, padding: "11px 16px", borderRadius: 8, background: error.includes("on a roll") ? C.amberBg : C.redBg, border: `1px solid ${error.includes("on a roll") ? C.amberBorder : C.redBorder}`, textAlign: "center" }}>
+                <p style={{ fontSize: 13, color: error.includes("on a roll") ? C.amber : C.red, margin: 0, fontFamily: C.sans }}>{error}</p>
+              </div>
+            )}
+
+            <p style={{ fontSize: 11, color: C.textDim, textAlign: "center", marginTop: 12, fontFamily: C.sans }}>Your CV and job description are not stored. All analysis happens in real time.</p>
           </div>
-
-          <button onClick={handleAnalyse} disabled={loading}
-            style={{ width: "100%", background: loading ? C.surface : C.accent, color: "#fff", border: "none", borderRadius: 10, padding: "16px 0", fontSize: 14, fontWeight: 500, cursor: loading ? "not-allowed" : "pointer", fontFamily: "'IBM Plex Sans'", letterSpacing: "0.04em", opacity: loading ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 12 }}>
-            {loading
-              ? (<><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />{loadingMsg}</>)
-              : "Analyse this role →"}
-          </button>
-
-          {error && (
-            <div style={{ marginTop: 12, padding: "10px 16px", borderRadius: 8, background: error.includes("on a roll") ? "rgba(245,158,11,0.08)" : "rgba(239,68,68,0.08)", border: `1px solid ${error.includes("on a roll") ? "rgba(245,158,11,0.25)" : "rgba(239,68,68,0.25)"}`, textAlign: "center" }}>
-              <p style={{ fontSize: 13, color: error.includes("on a roll") ? C.amber : C.red, margin: 0 }}>{error}</p>
-            </div>
-          )}
-          <p style={{ fontSize: 11, color: C.textMuted, textAlign: "center", marginTop: 10, fontFamily: "'IBM Plex Sans'", opacity: 0.7 }}>Your CV and job description are not stored. All analysis happens in real time.</p>
         </div>
       </div>
-    </div>
+    </>
   );
 
-  // ── RESULT ─────────────────────────────────────────────────
+  // ── RESULT SCREEN ─────────────────────────────────────────
   if (screen === "result" && result) {
     const r = result;
-    const whyFitBullets  = pipeSplit(r.whyFit);
-    const hmBullets      = pipeSplit(r.hiringManagerCares);
-    const redFlagBullets = pipeSplit(r.redFlags);
-    const rejBullets     = pipeSplit(r.rejectionRisk);
-    const actionBullets  = pipeSplit(r.whatToDoNext);
+    const whyFit  = pipeSplit(r.whyFit);
+    const hm      = pipeSplit(r.hiringManagerCares);
+    const flags   = pipeSplit(r.redFlags);
+    const rej     = pipeSplit(r.rejectionRisk);
+    const actions = pipeSplit(r.whatToDoNext);
+
     return (
-      <div style={{ minHeight: "100vh", background: C.bg, fontFamily: "'IBM Plex Sans', sans-serif", padding: "clamp(16px,4vw,28px) clamp(16px,4vw,20px)", paddingTop: 72, overflowX: "hidden" }}>
-        <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <>
+        <style>{G}</style>
+        <div style={{ minHeight: "100vh", background: C.bg, paddingTop: 64, overflowX: "hidden" }}>
 
           {/* Nav */}
-          <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: C.bg, borderBottom: `1px solid ${C.border}` }}>
-            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "14px clamp(24px,5vw,60px)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(8,9,13,0.92)", backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.border}` }}>
+            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(20px,5vw,60px)", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.text }}>Perceive</span>
-                <span style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 26, fontWeight: 500, color: C.accent }}>.</span>
+                <span style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 400, color: C.text }}>Perceive</span>
+                <span style={{ fontFamily: C.serif, fontSize: 24, color: C.accent }}>.</span>
               </div>
               <button onClick={() => { setResult(null); setScreen("input"); }}
-                style={{ background: C.card, border: `1px solid ${C.border}`, color: C.textMuted, borderRadius: 6, padding: "7px 14px", fontSize: 11, cursor: "pointer", fontFamily: "'IBM Plex Mono'" }}>← NEW ROLE</button>
-            </div>
-          </div>
-
-          <MindsetBanner text={r.mindsetBanner || r.fitReason} verdict={r.fitVerdict} />
-
-          <Card style={{ marginBottom: 14 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 20, alignItems: "start", marginBottom: 14 }}>
-              <div>
-                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 68, color: C.text, lineHeight: 1, letterSpacing: "-1px" }}>
-                  {r.matchScore}<span style={{ fontSize: 28, color: C.textMuted }}>%</span>
-                </div>
-                <div style={{ fontSize: 10, color: C.textMuted, fontFamily: "'IBM Plex Mono'", letterSpacing: 3, marginTop: 4 }}>MATCH SCORE</div>
-              </div>
-              <div className="score-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, minWidth: 0 }}>
-                <div style={{ borderLeft: `2px solid ${fitColor(r.fitVerdict)}40`, paddingLeft: 14 }}>
-                  <div style={{ fontSize: 10, letterSpacing: 2, color: C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 6 }}>REALITY CHECK</div>
-                  <div style={{ fontSize: 18, color: fitColor(r.fitVerdict), fontWeight: 600, marginBottom: 8 }}>{r.fitVerdict}</div>
-                  <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0 }}>{r.fitReason}</p>
-                </div>
-                <div style={{ borderLeft: `2px solid ${applyColor(r.applyVerdict)}40`, paddingLeft: 14 }}>
-                  <div style={{ fontSize: 10, letterSpacing: 2, color: C.textMuted, fontFamily: "'IBM Plex Mono'", marginBottom: 6 }}>SHOULD YOU APPLY?</div>
-                  <div style={{ fontSize: 18, color: applyColor(r.applyVerdict), fontWeight: 600, marginBottom: 8 }}>{r.applyVerdict}</div>
-                  <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0 }}>{r.applyReason}</p>
-                </div>
-              </div>
-            </div>
-            <div className="pills-row" style={{ borderTop: `1px solid ${C.border}`, paddingTop: 14, display: "flex" }}>
-              <div style={{ flex: 1, paddingRight: 24 }}><Pill label="SKILLS" value={r.skillsLevel} type={r.skillsLevel === "High" ? "good" : r.skillsLevel === "Medium" ? "warn" : "bad"} /></div>
-              <div style={{ flex: 1, borderLeft: `1px solid ${C.border}`, paddingLeft: 24, paddingRight: 24 }}><Pill label="DOMAIN" value={r.domainLevel} type={r.domainLevel === "Strong" ? "good" : r.domainLevel === "Moderate" ? "warn" : "bad"} /></div>
-              <div style={{ flex: 1, borderLeft: `1px solid ${C.border}`, paddingLeft: 24 }}><Pill label="SENIORITY" value={r.seniorityLevel} type={r.seniorityLevel === "Aligned" ? "good" : r.seniorityLevel === "Slight stretch" ? "warn" : "bad"} /></div>
-            </div>
-          </Card>
-
-          <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-            <Card><Label color={C.green}>WHY YOU FIT</Label><BulletList items={whyFitBullets} dotColor={C.green} /></Card>
-            <Card><Label color={C.accentBright}>YOUR EDGE</Label><p style={{ fontSize: 14, color: C.text, lineHeight: 1.75, fontFamily: "'IBM Plex Sans'" }}>{r.edge}</p></Card>
-          </div>
-
-          <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
-            <Card>
-              <Label color={C.amber}>HIRING MANAGER LENS</Label>
-              <BulletList items={hmBullets} dotColor={C.amber} />
-              <Divider />
-              <Label color={C.red}>RED FLAGS THEY'LL NOTICE</Label>
-              <BulletList items={redFlagBullets} dotColor={C.red} />
-            </Card>
-            <Card>
-              <Label color={C.red}>WHY YOU MIGHT GET REJECTED</Label>
-              <BulletList items={rejBullets} dotColor={C.red} />
-              <Divider />
-              <Label color={C.accentBright}>WHAT YOU SHOULD DO NEXT</Label>
-              <ActionList items={actionBullets} />
-            </Card>
-          </div>
-
-          <Card style={{ marginBottom: 12 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <Label color={C.accentBright}>YOUR 30-SECOND PITCH</Label>
-              <button onClick={() => copyText(r.pitch, setCopiedPitch)} style={{ background: "none", border: `1px solid ${C.border}`, color: copiedPitch ? C.green : C.textMuted, borderRadius: 4, padding: "4px 10px", fontSize: 10, cursor: "pointer", fontFamily: "'IBM Plex Mono'", marginBottom: 10 }}>
-                {copiedPitch ? "COPIED ✓" : "COPY"}
+                style={{ background: "rgba(107,92,231,0.08)", border: `1px solid rgba(107,92,231,0.2)`, color: C.accentBright, borderRadius: 8, padding: "7px 16px", fontSize: 11, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.1em", transition: "background 0.2s" }}
+                onMouseEnter={e => e.currentTarget.style.background = "rgba(107,92,231,0.15)"}
+                onMouseLeave={e => e.currentTarget.style.background = "rgba(107,92,231,0.08)"}>
+                ← NEW ROLE
               </button>
             </div>
-            <div style={{ background: C.surface, borderRadius: 8, padding: "14px 16px", borderLeft: `3px solid ${C.accent}`, marginBottom: 12 }}>
-              <p style={{ fontSize: 15, color: C.text, lineHeight: 1.9, fontStyle: "italic", fontFamily: "'IBM Plex Sans'" }}>"{r.pitch}"</p>
-            </div>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-              <div style={{ fontSize: 11, letterSpacing: 2, color: C.textMuted, fontFamily: "'IBM Plex Mono'", whiteSpace: "nowrap", paddingTop: 2 }}>POSITION AS</div>
-              <div style={{ fontSize: 14, color: C.accentBright, fontWeight: 600, lineHeight: 1.6, fontFamily: "'IBM Plex Sans'" }}>{r.positioning}</div>
-            </div>
-          </Card>
+          </nav>
 
-          <Card style={{ marginBottom: 12 }}>
-            <Label color={C.accent}>INTERVIEW STRATEGY</Label>
-            <div style={{ background: C.surface, borderRadius: 8, padding: "12px 14px", marginBottom: 14, borderLeft: `3px solid ${C.amber}` }}>
-              <div style={{ fontSize: 11, letterSpacing: 2, color: C.amber, marginBottom: 6, fontFamily: "'IBM Plex Mono'" }}>WHAT THEY'RE REALLY TESTING</div>
-              <p style={{ fontSize: 14, color: C.text, lineHeight: 1.75, fontFamily: "'IBM Plex Sans'" }}>{r.whatTheyAreTesting}</p>
-            </div>
-            <QCard q={r.q1} whyAsking={r.q1whyAsking} intent={r.q1intent} approach={r.q1approach} mistake={r.q1mistake} num={1} />
-            <QCard q={r.q2} whyAsking={r.q2whyAsking} intent={r.q2intent} approach={r.q2approach} mistake={r.q2mistake} num={2} />
-            <QCard q={r.q3} whyAsking={r.q3whyAsking} intent={r.q3intent} approach={r.q3approach} mistake={r.q3mistake} num={3} />
-          </Card>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "clamp(16px,3vw,28px) clamp(16px,4vw,28px) 40px" }}>
 
-          <Card style={{ marginBottom: 28 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-              <Label color={C.green}>STRONG ANSWER. USE THIS AS YOUR TEMPLATE</Label>
-              <button onClick={() => copyText(r.exampleAnswer, setCopiedAnswer)} style={{ background: "none", border: `1px solid ${C.border}`, color: copiedAnswer ? C.green : C.textMuted, borderRadius: 4, padding: "4px 10px", fontSize: 10, cursor: "pointer", fontFamily: "'IBM Plex Mono'", marginBottom: 10 }}>
-                {copiedAnswer ? "COPIED ✓" : "COPY"}
+            {/* Mindset banner */}
+            <MindsetBanner text={r.mindsetBanner || r.fitReason} verdict={r.fitVerdict} />
+
+            {/* Score card */}
+            <Card style={{ marginBottom: 14, animation: "fadeUp 0.4s ease 0.05s both" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: 28, alignItems: "start", marginBottom: 18 }}>
+                <div>
+                  <div style={{ fontFamily: C.serif, fontSize: 80, fontWeight: 300, color: C.text, lineHeight: 0.9, letterSpacing: "-2px" }}>
+                    {r.matchScore}<span style={{ fontSize: 30, color: C.textDim, fontWeight: 300, letterSpacing: 0 }}>%</span>
+                  </div>
+                  <div style={{ fontSize: 9, color: C.textDim, fontFamily: C.mono, letterSpacing: "0.2em", marginTop: 8, textTransform: "uppercase" }}>Match Score</div>
+                </div>
+                <div className="score-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, minWidth: 0 }}>
+                  <div style={{ borderLeft: `2px solid ${fitColor(r.fitVerdict)}30`, paddingLeft: 18, textAlign: "left" }}>
+                    <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Reality Check</div>
+                    <div style={{ fontSize: 20, color: fitColor(r.fitVerdict), fontWeight: 600, fontFamily: C.sans, marginBottom: 10 }}>{r.fitVerdict}</div>
+                    <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.65, margin: 0, fontWeight: 300, textAlign: "left" }}>{r.fitReason}</p>
+                  </div>
+                  <div style={{ borderLeft: `2px solid ${applyColor(r.applyVerdict)}30`, paddingLeft: 18, textAlign: "left" }}>
+                    <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Should You Apply?</div>
+                    <div style={{ fontSize: 20, color: applyColor(r.applyVerdict), fontWeight: 600, fontFamily: C.sans, marginBottom: 10 }}>{r.applyVerdict}</div>
+                    <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.65, margin: 0, fontWeight: 300, textAlign: "left" }}>{r.applyReason}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="pills-row" style={{ borderTop: `1px solid ${C.border}`, paddingTop: 18, display: "flex", gap: 0 }}>
+                <Pill label="Skills" value={r.skillsLevel} type={r.skillsLevel === "High" ? "good" : r.skillsLevel === "Medium" ? "warn" : "bad"} />
+                <div style={{ width: 1, background: C.border }} />
+                <Pill label="Domain" value={r.domainLevel} type={r.domainLevel === "Strong" ? "good" : r.domainLevel === "Moderate" ? "warn" : "bad"} />
+                <div style={{ width: 1, background: C.border }} />
+                <Pill label="Seniority" value={r.seniorityLevel} type={r.seniorityLevel === "Aligned" ? "good" : r.seniorityLevel === "Slight stretch" ? "warn" : "bad"} />
+              </div>
+            </Card>
+
+            {/* Why fit + Edge */}
+            <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <Card style={{ animation: "fadeUp 0.4s ease 0.1s both" }}>
+                <SectionLabel color={C.green}>Why You Fit</SectionLabel>
+                <BulletList items={whyFit} color={C.green} />
+              </Card>
+              <Card style={{ animation: "fadeUp 0.4s ease 0.13s both" }}>
+                <SectionLabel color={C.accentBright}>Your Edge</SectionLabel>
+                <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.edge}</p>
+              </Card>
+            </div>
+
+            {/* HM Lens + Rejection */}
+            <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+              <Card style={{ animation: "fadeUp 0.4s ease 0.16s both" }}>
+                <SectionLabel color={C.amber}>Hiring Manager Lens</SectionLabel>
+                <BulletList items={hm} color={C.amber} />
+                <Divider />
+                <SectionLabel color={C.red}>Red Flags They'll Notice</SectionLabel>
+                <BulletList items={flags} color={C.red} />
+              </Card>
+              <Card style={{ animation: "fadeUp 0.4s ease 0.19s both" }}>
+                <SectionLabel color={C.red}>Why You Might Get Rejected</SectionLabel>
+                <BulletList items={rej} color={C.red} />
+                <Divider />
+                <SectionLabel color={C.accentBright}>What You Should Do Next</SectionLabel>
+                <ActionList items={actions} />
+              </Card>
+            </div>
+
+            {/* Pitch */}
+            <Card style={{ marginBottom: 12, animation: "fadeUp 0.4s ease 0.22s both" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                <SectionLabel color={C.accentBright}>Your 30-Second Pitch</SectionLabel>
+                <button onClick={() => copyText(r.pitch, setCopiedPitch)}
+                  style={{ background: "none", border: `1px solid ${C.border}`, color: copiedPitch ? C.green : C.textDim, borderRadius: 6, padding: "5px 12px", fontSize: 10, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.08em", transition: "all 0.2s" }}>
+                  {copiedPitch ? "COPIED ✓" : "COPY"}
+                </button>
+              </div>
+              <div style={{ background: C.surface, borderRadius: 10, padding: "18px 20px", borderLeft: `3px solid ${C.accent}`, marginBottom: 14 }}>
+                <p style={{ fontSize: 15, color: C.text, lineHeight: 1.85, fontStyle: "italic", fontFamily: C.serif, fontWeight: 300, margin: 0, textAlign: "left" }}>"{r.pitch}"</p>
+              </div>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                <span style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", paddingTop: 3, flexShrink: 0 }}>Position as</span>
+                <p style={{ fontSize: 14, color: C.accentBright, fontWeight: 500, lineHeight: 1.55, fontFamily: C.sans, margin: 0, textAlign: "left" }}>{r.positioning}</p>
+              </div>
+            </Card>
+
+            {/* Interview strategy */}
+            <Card style={{ marginBottom: 12, animation: "fadeUp 0.4s ease 0.25s both" }}>
+              <SectionLabel color={C.accent}>Interview Strategy</SectionLabel>
+              <div style={{ background: C.surface, borderRadius: 10, padding: "14px 16px", marginBottom: 16, borderLeft: `3px solid ${C.amber}` }}>
+                <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.amber, marginBottom: 8, fontFamily: C.mono, textTransform: "uppercase" }}>What They're Really Testing</div>
+                <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.whatTheyAreTesting}</p>
+              </div>
+              <QCard q={r.q1} whyAsking={r.q1whyAsking} intent={r.q1intent} approach={r.q1approach} mistake={r.q1mistake} num={1} />
+              <QCard q={r.q2} whyAsking={r.q2whyAsking} intent={r.q2intent} approach={r.q2approach} mistake={r.q2mistake} num={2} />
+              <QCard q={r.q3} whyAsking={r.q3whyAsking} intent={r.q3intent} approach={r.q3approach} mistake={r.q3mistake} num={3} />
+            </Card>
+
+            {/* Example answer */}
+            <Card style={{ marginBottom: 28, animation: "fadeUp 0.4s ease 0.28s both" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                <SectionLabel color={C.green}>Strong Answer — Use This as Your Template</SectionLabel>
+                <button onClick={() => copyText(r.exampleAnswer, setCopiedAnswer)}
+                  style={{ background: "none", border: `1px solid ${C.border}`, color: copiedAnswer ? C.green : C.textDim, borderRadius: 6, padding: "5px 12px", fontSize: 10, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.08em", transition: "all 0.2s" }}>
+                  {copiedAnswer ? "COPIED ✓" : "COPY"}
+                </button>
+              </div>
+              <div style={{ background: C.surface, borderRadius: 10, padding: "18px 20px", borderLeft: `3px solid ${C.green}` }}>
+                <p style={{ fontSize: 15, color: C.text, lineHeight: 1.9, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.exampleAnswer}</p>
+              </div>
+            </Card>
+
+            {/* Analyse another */}
+            <div style={{ textAlign: "center", paddingBottom: 32 }}>
+              <button onClick={() => { setResult(null); setJd(""); setScreen("input"); }}
+                style={{ background: `linear-gradient(135deg, ${C.accent}, #5548CC)`, color: "#fff", border: "none", borderRadius: 10, padding: "14px 40px", fontSize: 14, fontWeight: 500, cursor: "pointer", fontFamily: C.sans, letterSpacing: "0.04em", boxShadow: "0 4px 24px rgba(107,92,231,0.3)", transition: "transform 0.2s, box-shadow 0.2s" }}
+                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(107,92,231,0.45)"; }}
+                onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "0 4px 24px rgba(107,92,231,0.3)"; }}>
+                Analyse Another Role →
               </button>
             </div>
-            <div style={{ background: C.surface, borderRadius: 8, padding: "16px 18px", borderLeft: `3px solid ${C.green}` }}>
-              <p style={{ fontSize: 15, color: C.text, lineHeight: 1.95, fontFamily: "'IBM Plex Sans'" }}>{r.exampleAnswer}</p>
-            </div>
-          </Card>
 
-          <div style={{ textAlign: "center", paddingBottom: 28 }}>
-            <button onClick={() => { setResult(null); setJd(""); setScreen("input"); }}
-              style={{ background: `linear-gradient(135deg, ${C.accent}, #4B3EC7)`, color: "#fff", border: "none", borderRadius: 8, padding: "14px 36px", fontSize: 15, fontWeight: 500, cursor: "pointer", fontFamily: "'IBM Plex Mono'", letterSpacing: 1 }}>
-              ANALYSE ANOTHER ROLE →
-            </button>
           </div>
-
         </div>
-      </div>
+      </>
     );
   }
 
