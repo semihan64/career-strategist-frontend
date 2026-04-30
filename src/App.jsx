@@ -244,7 +244,7 @@ function QCard({ q, whyAsking, intent, approach, mistake, num }) {
       {open && (
         <div style={{ background: C.surface, padding: "16px 18px", display: "grid", gap: 14, animation: "fadeUp 0.2s ease" }}>
           <div style={{ background: C.amberBg, border: `1px solid ${C.amberBorder}`, borderRadius: 8, padding: "12px 14px" }}>
-            <div style={{ fontSize: 10, letterSpacing: "0.18em", color: C.amber, marginBottom: 6, fontFamily: C.mono, textTransform: "uppercase" }}>Why they're asking this</div>
+            <div style={{ fontSize: 10, letterSpacing: "0.18em", color: C.amber, marginBottom: 6, fontFamily: C.mono, textTransform: "uppercase", textAlign: "left" }}>Why they're asking this</div>
             <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>{whyAsking}</p>
           </div>
           {[
@@ -253,7 +253,7 @@ function QCard({ q, whyAsking, intent, approach, mistake, num }) {
             ["Mistake to avoid", mistake, C.red],
           ].map(([lbl, val, col]) => (
             <div key={lbl}>
-              <div style={{ fontSize: 10, letterSpacing: "0.18em", color: col, marginBottom: 6, fontFamily: C.mono, textTransform: "uppercase" }}>{lbl}</div>
+              <div style={{ fontSize: 10, letterSpacing: "0.18em", color: col, marginBottom: 6, fontFamily: C.mono, textTransform: "uppercase", textAlign: "left" }}>{lbl}</div>
               <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{val}</p>
             </div>
           ))}
@@ -579,7 +579,7 @@ export default function App() {
                 <Card style={{ marginBottom: 12 }}>
                   <SectionLabel color={C.accent}>Interview Strategy</SectionLabel>
                   <div style={{ background: C.surface, borderRadius: 10, padding: "16px 18px", marginBottom: 18, borderLeft: `3px solid ${C.amber}` }}>
-                    <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.amber, marginBottom: 8, fontFamily: C.mono, textTransform: "uppercase", textAlign: "left" }}>What They're Really Testing</div>
+                    <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.amber, marginBottom: 8, fontFamily: C.mono, textTransform: "uppercase", textAlign: "left" }}>What they're really testing</div>
                     <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.whatTheyAreTesting}</p>
                   </div>
                   <QCard q={r.q1} whyAsking={r.q1whyAsking} intent={r.q1intent} approach={r.q1approach} mistake={r.q1mistake} num={1} />
