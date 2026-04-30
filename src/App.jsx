@@ -31,9 +31,14 @@ const G = `
   @media(max-width:768px) {
     .grid-2col { grid-template-columns: 1fr !important; }
     .score-grid { grid-template-columns: 1fr !important; }
-    .pills-row { flex-wrap: wrap !important; gap: 8px !important; }
+    .pills-row { flex-direction: column !important; gap: 0 !important; }
+    .pills-row > div { padding: 16px 0 !important; border-right: none !important; border-bottom: 1px solid #1E2035; }
+    .pills-row > div:last-child { border-bottom: none !important; }
     .hide-mobile { display: none !important; }
     .input-grid { grid-template-columns: 1fr !important; }
+  }
+  @media(max-width:600px) {
+    .score-card-grid { grid-template-columns: 1fr !important; }
   }
 `;
 
@@ -175,7 +180,7 @@ function ActionList({ items }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
       {items.map((line, i) => (
         <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", textAlign: "left" }}>
-          <span style={{ color: C.accentBright, fontFamily: C.mono, fontSize: 12, marginTop: 3, flexShrink: 0 }}>→</span>
+          <span style={{ color: C.accent, fontFamily: C.mono, fontSize: 13, marginTop: 3, flexShrink: 0, fontWeight: 600 }}>→</span>
           <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, textAlign: "left", margin: 0 }}>{line}</p>
         </div>
       ))}
@@ -342,7 +347,7 @@ export default function App() {
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(20px,5vw,60px) 40px" }}>
 
           {/* Hero */}
-          <div style={{ padding: "44px 0 36px", animation: "fadeUp 0.6s ease both" }}>
+          <div style={{ padding: "44px 0 36px", animation: "fadeUp 0.6s ease both", textAlign: "left" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <div style={{ width: 18, height: 1, background: C.accent }} />
               <span style={{ fontSize: 10, letterSpacing: "0.22em", color: C.accent, fontFamily: C.mono, textTransform: "uppercase" }}>Role Intelligence</span>
@@ -354,15 +359,15 @@ export default function App() {
                 <span style={{ fontStyle: "italic", color: C.accent, fontWeight: 300 }}>so why aren't you getting offers?</span>
               </h1>
             </div>
-            <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, paddingLeft: 21, fontWeight: 300 }}>Most candidates walk in guessing. You won't.</p>
+            <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, paddingLeft: 21, fontWeight: 300, textAlign: "left" }}>Most candidates walk in guessing. You won't.</p>
           </div>
 
           {/* Feature chips */}
-          <div style={{ paddingBottom: 32, animation: "fadeUp 0.6s ease 0.1s both" }}>
-            <div style={{ fontSize: 10, letterSpacing: "0.2em", color: C.textDim, textTransform: "uppercase", fontFamily: C.mono, marginBottom: 12 }}>What you get</div>
+          <div style={{ paddingBottom: 32, animation: "fadeUp 0.6s ease 0.1s both", textAlign: "left" }}>
+            <div style={{ fontSize: 10, letterSpacing: "0.2em", color: C.text, textTransform: "uppercase", fontFamily: C.mono, marginBottom: 12, opacity: 0.6 }}>What you get</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {Object.entries(chipIcons).map(([label, icon], i) => (
-                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(107,92,231,0.06)", border: `1px solid rgba(107,92,231,0.15)`, borderRadius: 999, padding: "6px 13px 6px 10px", fontSize: 12, color: C.textMuted, fontFamily: C.sans, fontWeight: 300 }}>
+                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(107,92,231,0.06)", border: `1px solid rgba(107,92,231,0.3)`, borderRadius: 999, padding: "6px 13px 6px 10px", fontSize: 12, color: C.text, fontFamily: C.sans, fontWeight: 300 }}>
                   {icon}{label}
                 </div>
               ))}
@@ -370,11 +375,11 @@ export default function App() {
           </div>
 
           {/* Inputs */}
-          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 28, animation: "fadeUp 0.6s ease 0.15s both" }}>
-            <div className="input-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+          <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 28, animation: "fadeUp 0.6s ease 0.15s both", textAlign: "left" }}>
+            <div className="input-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16, width: "100%" }}>
               {/* CV */}
-              <div>
-                <label style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Your CV</label>
+              <div style={{ textAlign: "left" }}>
+                <label style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8, textAlign: "left" }}>Your CV</label>
                 <textarea value={cv} onChange={e => setCv(e.target.value.slice(0, 8000))} rows={10}
                   placeholder="Paste your CV here. Include your name for a personalised analysis."
                   style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s" }}
@@ -382,8 +387,8 @@ export default function App() {
                   onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; }} />
               </div>
               {/* JD */}
-              <div>
-                <label style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Job Description</label>
+              <div style={{ textAlign: "left" }}>
+                <label style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8, textAlign: "left" }}>Job Description</label>
                 <textarea value={jd} onChange={e => { setJd(e.target.value.slice(0, 10000)); setError(""); }} rows={10}
                   placeholder="Paste the job description here..."
                   style={{ width: "100%", background: C.card, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s" }}
@@ -462,7 +467,7 @@ export default function App() {
                   </div>
                   <div style={{ fontSize: 9, color: C.textDim, fontFamily: C.mono, letterSpacing: "0.2em", marginTop: 8, textTransform: "uppercase" }}>Match Score</div>
                 </div>
-                <div className="score-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, minWidth: 0 }}>
+                <div className="score-grid score-card-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, minWidth: 0 }}>
                   <div style={{ borderLeft: `2px solid ${fitColor(r.fitVerdict)}30`, paddingLeft: 18, textAlign: "left" }}>
                     <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Reality Check</div>
                     <div style={{ fontSize: 20, color: fitColor(r.fitVerdict), fontWeight: 600, fontFamily: C.sans, marginBottom: 10 }}>{r.fitVerdict}</div>
