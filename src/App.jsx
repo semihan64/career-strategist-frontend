@@ -4,8 +4,8 @@ const PROXY_URL = "https://career-strategist-backend-production.up.railway.app/a
 
 // ── Design tokens ─────────────────────────────────────────────
 const C = {
-  bg: "#08090D", surface: "#0D0E17", card: "#111220", cardHover: "#161728",
-  border: "#1E2035", borderLight: "#262840",
+  bg: "#0E0F18", surface: "#13142A", card: "#161830", cardHover: "#1A1B35",
+  border: "#2A2C4A", borderLight: "#262840",
   accent: "#6B5CE7", accentBright: "#9B8FF8", accentGlow: "rgba(107,92,231,0.15)",
   amber: "#F59E0B", amberBg: "rgba(245,158,11,0.08)", amberBorder: "rgba(245,158,11,0.2)",
   green: "#10B981", greenBg: "rgba(16,185,129,0.08)", greenBorder: "rgba(16,185,129,0.2)",
@@ -51,6 +51,13 @@ const G = `
     .pills-row > div:last-child { border-bottom: none !important; }
     .hide-mobile { display: none !important; }
     .input-grid { grid-template-columns: 1fr !important; }
+  }
+  @media print {
+    nav { display: none !important; }
+    .tabs-nav { display: none !important; }
+    button { display: none !important; }
+    .tab-content-hidden { display: block !important; }
+    body { background: white !important; color: black !important; }
   }
   @media(max-width:600px) {
     .score-card-grid { grid-template-columns: 1fr !important; }
@@ -213,7 +220,7 @@ function Pill({ label, value, type }) {
 
   return (
     <div style={{ flex: 1, padding: "0 20px", textAlign: "left" }}>
-      <div style={{ fontSize: 11, letterSpacing: "0.05em", color: C.textDim, fontFamily: C.sans, marginBottom: 10, fontWeight: 500 }}>{label}</div>
+      <div style={{ fontSize: 13, letterSpacing: "0.05em", color: C.textDim, fontFamily: C.sans, marginBottom: 10, fontWeight: 500 }}>{label}</div>
       <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
         {[1,2,3,4].map(i => (
           <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i <= dots ? col : C.border, transition: "background 0.2s" }} />
@@ -250,10 +257,10 @@ function QCard({ q, whyAsking, intent, approach, mistake, num }) {
   return (
     <div style={{ border: `1px solid ${open ? C.borderLight : C.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 8, transition: "border-color 0.2s" }}>
       <button onClick={() => setOpen(!open)} style={{ width: "100%", background: open ? C.cardHover : C.card, border: "none", padding: "14px 18px", cursor: "pointer", display: "flex", alignItems: "flex-start", gap: 14, textAlign: "left" }}>
-        <span style={{ fontSize: 10, fontFamily: C.mono, color: C.accent, minWidth: 22, paddingTop: 3, fontWeight: 500 }}>Q{num}</span>
+        <span style={{ fontSize: 12, fontFamily: C.mono, color: C.accent, minWidth: 22, paddingTop: 3, fontWeight: 500 }}>Q{num}</span>
         <span style={{ fontSize: 15, color: C.text, fontFamily: C.sans, flex: 1, lineHeight: 1.75, fontWeight: 400 }}>{q}</span>
         <div style={{ flexShrink: 0, width: 26, height: 26, borderRadius: 6, background: open ? C.accent : "rgba(107,92,231,0.1)", border: `1px solid ${open ? C.accent : "rgba(107,92,231,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
-          <span style={{ color: open ? "#fff" : C.accentBright, fontSize: 11, display: "block", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
+          <span style={{ color: open ? "#fff" : C.accentBright, fontSize: 13, display: "block", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
         </div>
       </button>
       {open && (
@@ -332,6 +339,77 @@ export default function App() {
     setLoading(false);
   };
 
+  const buildAnalysisText = (r) => {
+    const lines = [
+      `PERCEIVE ANALYSIS`,
+      `==================`,
+      ``,
+      `MATCH SCORE: ${r.matchScore}%`,
+      `Reality Check: ${r.fitVerdict}`,
+      `${r.fitReason}`,
+      ``,
+      `Should You Apply: ${r.applyVerdict}`,
+      `${r.applyReason}`,
+      ``,
+      `Skills: ${r.skillsLevel} | Domain: ${r.domainLevel} | Seniority: ${r.seniorityLevel}`,
+      ``,
+      `─────────────────────────────`,
+      `MINDSET`,
+      `─────────────────────────────`,
+      r.mindsetBanner,
+      ``,
+      `─────────────────────────────`,
+      `WHY YOU FIT`,
+      `─────────────────────────────`,
+      ...(r.whyFit || "").split("|").map(s => `• ${s.trim()}`),
+      ``,
+      `YOUR EDGE`,
+      r.edge,
+      ``,
+      `─────────────────────────────`,
+      `YOUR STORY — 30-SECOND PITCH`,
+      `─────────────────────────────`,
+      r.pitch,
+      ``,
+      `Position as: ${r.positioning}`,
+      ``,
+      `─────────────────────────────`,
+      `WHAT YOU SHOULD DO NEXT`,
+      `─────────────────────────────`,
+      ...(r.whatToDoNext || "").split("|").map(s => `→ ${s.trim()}`),
+      ``,
+      `─────────────────────────────`,
+      `IN THE ROOM — INTERVIEW PREP`,
+      `─────────────────────────────`,
+      `What they're testing: ${r.whatTheyAreTesting}`,
+      ``,
+      `Q1: ${r.q1}`,
+      `Why asking: ${r.q1whyAsking}`,
+      `How to approach: ${r.q1approach}`,
+      `Mistake to avoid: ${r.q1mistake}`,
+      ``,
+      `Q2: ${r.q2}`,
+      `Why asking: ${r.q2whyAsking}`,
+      `How to approach: ${r.q2approach}`,
+      `Mistake to avoid: ${r.q2mistake}`,
+      ``,
+      `Q3: ${r.q3}`,
+      `Why asking: ${r.q3whyAsking}`,
+      `How to approach: ${r.q3approach}`,
+      `Mistake to avoid: ${r.q3mistake}`,
+      ``,
+      `─────────────────────────────`,
+      `STRONG ANSWER TEMPLATE`,
+      `─────────────────────────────`,
+      r.exampleAnswer,
+      ``,
+      `─ Analysed by Perceive · perceive-app.vercel.app ─`,
+    ];
+    return lines.join("\n");
+  };
+
+  const [copiedAll, setCopiedAll] = useState(false);
+
   const copyText = (text, setter) => {
     navigator.clipboard.writeText(text);
     setter(true); setTimeout(() => setter(false), 2000);
@@ -355,7 +433,7 @@ export default function App() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 6, background: C.greenBg, border: `1px solid ${C.greenBorder}`, borderRadius: 20, padding: "5px 14px 5px 10px" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.green, animation: "pulse 2s infinite" }} />
-              <span style={{ fontSize: 11, color: C.green, fontFamily: C.mono }}>No sign up. No data stored.</span>
+              <span style={{ fontSize: 13, color: C.green, fontFamily: C.mono }}>No sign up. No data stored.</span>
             </div>
           </div>
         </nav>
@@ -366,7 +444,7 @@ export default function App() {
           <div style={{ padding: "44px 0 36px", animation: "fadeUp 0.6s ease both", textAlign: "left" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <div style={{ width: 18, height: 1, background: C.accent }} />
-              <span style={{ fontSize: 10, letterSpacing: "0.22em", color: C.accent, fontFamily: C.mono, textTransform: "uppercase" }}>Role Intelligence</span>
+              <span style={{ fontSize: 12, letterSpacing: "0.22em", color: C.accent, fontFamily: C.mono, textTransform: "uppercase" }}>Role Intelligence</span>
             </div>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 18, marginBottom: 16 }}>
               <div style={{ width: 3, background: `linear-gradient(to bottom, ${C.accent}, transparent)`, borderRadius: 2, flexShrink: 0, alignSelf: "stretch", minHeight: 80 }} />
@@ -380,7 +458,7 @@ export default function App() {
 
           {/* Feature chips */}
           <div style={{ paddingBottom: 32, animation: "fadeUp 0.6s ease 0.1s both", textAlign: "left" }}>
-            <div style={{ fontSize: 10, letterSpacing: "0.2em", color: C.text, textTransform: "uppercase", fontFamily: C.mono, marginBottom: 12, opacity: 0.6 }}>What you get</div>
+            <div style={{ fontSize: 12, letterSpacing: "0.2em", color: C.text, textTransform: "uppercase", fontFamily: C.mono, marginBottom: 12, opacity: 0.6 }}>What you get</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {Object.entries(chipIcons).map(([label, icon], i) => (
                 <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(107,92,231,0.06)", border: `1px solid rgba(107,92,231,0.3)`, borderRadius: 999, padding: "6px 13px 6px 10px", fontSize: 12, color: C.text, fontFamily: C.sans, fontWeight: 300 }}>
@@ -395,7 +473,7 @@ export default function App() {
             <div className="input-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16, width: "100%" }}>
               {/* CV */}
               <div style={{ textAlign: "left" }}>
-                <label style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8, textAlign: "left" }}>Your CV</label>
+                <label style={{ fontSize: 12, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8, textAlign: "left" }}>Your CV</label>
                 <textarea value={cv} onChange={e => setCv(e.target.value.slice(0, 8000))} rows={10}
                   placeholder="Paste your full CV here for the sharpest analysis."
                   style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s" }}
@@ -404,14 +482,14 @@ export default function App() {
               </div>
               {/* JD */}
               <div style={{ textAlign: "left" }}>
-                <label style={{ fontSize: 10, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8, textAlign: "left" }}>Job Description</label>
+                <label style={{ fontSize: 12, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8, textAlign: "left" }}>Job Description</label>
                 <textarea value={jd} onChange={e => { setJd(e.target.value.slice(0, 10000)); setError(""); }} rows={10}
                   placeholder="Paste the job description here..."
                   style={{ width: "100%", background: C.card, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s" }}
                   onFocus={e => { if (!error) { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 3px ${C.accentGlow}`; } }}
                   onBlur={e => { if (!error) { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; } }} />
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
-                  <span style={{ fontSize: 11, color: jd.length > 9000 ? C.amber : C.textDim, fontFamily: C.mono }}>{jd.length} / 10000</span>
+                  <span style={{ fontSize: 13, color: jd.length > 9000 ? C.amber : C.textDim, fontFamily: C.mono }}>{jd.length} / 10000</span>
                 </div>
               </div>
             </div>
@@ -432,7 +510,7 @@ export default function App() {
               </div>
             )}
 
-            <p style={{ fontSize: 11, color: C.textDim, textAlign: "center", marginTop: 12, fontFamily: C.sans }}>Your CV and job description are not stored. All analysis happens in real time.</p>
+            <p style={{ fontSize: 13, color: C.textDim, textAlign: "center", marginTop: 12, fontFamily: C.sans }}>Your CV and job description are not stored. All analysis happens in real time.</p>
           </div>
         </div>
       </div>
@@ -467,10 +545,18 @@ export default function App() {
                 <span style={{ fontFamily: C.serif, fontSize: 24, color: C.accent }}>.</span>
               </div>
               <button onClick={() => { setResult(null); setScreen("input"); setActiveTab("fit"); }}
-                style={{ background: "rgba(107,92,231,0.08)", border: `1px solid rgba(107,92,231,0.2)`, color: C.accentBright, borderRadius: 8, padding: "7px 16px", fontSize: 11, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.1em", transition: "background 0.2s" }}
+                style={{ background: "rgba(107,92,231,0.08)", border: `1px solid rgba(107,92,231,0.2)`, color: C.accentBright, borderRadius: 8, padding: "7px 16px", fontSize: 13, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.1em", transition: "background 0.2s" }}
                 onMouseEnter={e => e.currentTarget.style.background = "rgba(107,92,231,0.15)"}
                 onMouseLeave={e => e.currentTarget.style.background = "rgba(107,92,231,0.08)"}>
-                ← NEW ROLE
+                ← New Role
+              </button>
+              <button onClick={() => { const txt = buildAnalysisText(result); navigator.clipboard.writeText(txt); setCopiedAll(true); setTimeout(() => setCopiedAll(false), 2000); }}
+                style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)", color: C.green, borderRadius: 8, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontFamily: C.sans, fontWeight: 500 }}>
+                {copiedAll ? "Copied ✓" : "Copy Analysis"}
+              </button>
+              <button onClick={() => window.print()}
+                style={{ background: "rgba(107,92,231,0.08)", border: `1px solid rgba(107,92,231,0.2)`, color: C.accentBright, borderRadius: 8, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontFamily: C.sans, fontWeight: 500 }}>
+                Save as PDF
               </button>
             </div>
           </nav>
@@ -486,16 +572,16 @@ export default function App() {
                   <div style={{ fontFamily: C.serif, fontSize: 80, fontWeight: 300, color: C.text, lineHeight: 0.9, letterSpacing: "-2px" }}>
                     {r.matchScore}<span style={{ fontSize: 30, color: C.textDim, fontWeight: 300 }}>%</span>
                   </div>
-                  <div style={{ fontSize: 9, color: C.textDim, fontFamily: C.mono, letterSpacing: "0.2em", marginTop: 8, textTransform: "uppercase" }}>Match Score</div>
+                  <div style={{ fontSize: 12, color: C.textDim, fontFamily: C.mono, letterSpacing: "0.2em", marginTop: 8, textTransform: "uppercase" }}>Match Score</div>
                 </div>
                 <div className="score-grid score-card-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, minWidth: 0 }}>
                   <div style={{ borderLeft: `2px solid ${fitColor(r.fitVerdict)}30`, paddingLeft: 18, textAlign: "left" }}>
-                    <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Reality Check</div>
+                    <div style={{ fontSize: 12, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Reality Check</div>
                     <div style={{ fontSize: 20, color: fitColor(r.fitVerdict), fontWeight: 600, marginBottom: 10 }}>{r.fitVerdict}</div>
                     <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.8, margin: 0, fontWeight: 400, textAlign: "left" }}>{r.fitReason}</p>
                   </div>
                   <div style={{ borderLeft: `2px solid ${applyColor(r.applyVerdict)}30`, paddingLeft: 18, textAlign: "left" }}>
-                    <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Should You Apply?</div>
+                    <div style={{ fontSize: 12, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Should You Apply?</div>
                     <div style={{ fontSize: 20, color: applyColor(r.applyVerdict), fontWeight: 600, marginBottom: 10 }}>{r.applyVerdict}</div>
                     <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.8, margin: 0, fontWeight: 400, textAlign: "left" }}>{r.applyReason}</p>
                   </div>
@@ -510,21 +596,29 @@ export default function App() {
               </div>
             </Card>
 
-            {/* ── Tabs ── */}
-            <div style={{ display: "flex", gap: 4, marginBottom: 20, background: C.surface, borderRadius: 12, padding: 4, border: `1px solid ${C.border}` }}>
-              {tabs.map(tab => (
-                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                  style={{
-                    flex: 1, padding: "10px 16px", border: "none", borderRadius: 9, cursor: "pointer",
-                    fontFamily: C.sans, fontSize: 13, fontWeight: activeTab === tab.id ? 500 : 300,
-                    color: activeTab === tab.id ? C.text : C.textMuted,
-                    background: activeTab === tab.id ? C.card : "transparent",
-                    boxShadow: activeTab === tab.id ? `0 2px 8px rgba(0,0,0,0.3), 0 0 0 1px ${C.border}` : "none",
-                    transition: "all 0.2s",
-                  }}>
-                  {tab.label}
-                </button>
-              ))}
+            {/* ── Tabs D style ── */}
+            <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
+              {tabs.map(tab => {
+                const hints = {
+                  fit: "Fit, gaps, red flags",
+                  pitch: "Pitch + positioning",
+                  interview: "Questions + answers",
+                };
+                const isActive = activeTab === tab.id;
+                return (
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                    style={{
+                      flex: 1, padding: "14px 16px", border: `1px solid ${isActive ? C.accent : C.border}`,
+                      background: isActive ? C.surface : C.card,
+                      borderRadius: 10, cursor: "pointer", fontFamily: C.sans,
+                      textAlign: "left", transition: "all 0.2s",
+                      borderTop: isActive ? `3px solid ${C.accent}` : `1px solid ${C.border}`,
+                    }}>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: isActive ? C.text : C.textDim, marginBottom: 4 }}>{tab.label}</div>
+                    <div style={{ fontSize: 12, color: isActive ? C.accent : C.textDim }}>{hints[tab.id]}</div>
+                  </button>
+                );
+              })}
             </div>
 
             {/* ── Tab: Your Fit ── */}
@@ -566,7 +660,7 @@ export default function App() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                     <SectionLabel color={C.accentBright}>Your 30-Second Pitch</SectionLabel>
                     <button onClick={() => copyText(r.pitch, setCopiedPitch)}
-                      style={{ background: "none", border: `1px solid ${C.border}`, color: copiedPitch ? C.green : C.textDim, borderRadius: 6, padding: "5px 12px", fontSize: 10, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.08em", transition: "all 0.2s" }}>
+                      style={{ background: "none", border: `1px solid ${C.border}`, color: copiedPitch ? C.green : C.textDim, borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.08em", transition: "all 0.2s" }}>
                       {copiedPitch ? "COPIED ✓" : "COPY"}
                     </button>
                   </div>
@@ -574,7 +668,7 @@ export default function App() {
                     <p style={{ fontSize: 16, color: C.text, lineHeight: 1.85, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>"{r.pitch}"</p>
                   </div>
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "14px 16px", background: C.surface, borderRadius: 8 }}>
-                    <span style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", paddingTop: 4, flexShrink: 0 }}>Position as</span>
+                    <span style={{ fontSize: 12, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", paddingTop: 4, flexShrink: 0 }}>Position as</span>
                     <p style={{ fontSize: 15, color: C.accentBright, fontWeight: 500, lineHeight: 1.55, fontFamily: C.sans, margin: 0, textAlign: "left" }}>{r.positioning}</p>
                   </div>
                 </Card>
@@ -594,7 +688,7 @@ export default function App() {
                 <Card style={{ marginBottom: 12 }}>
                   <SectionLabel color={C.accent}>Interview Strategy</SectionLabel>
                   <div style={{ background: C.surface, borderRadius: 10, padding: "16px 18px", marginBottom: 18, borderLeft: `3px solid ${C.amber}` }}>
-                    <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.amber, marginBottom: 8, fontFamily: C.mono, textTransform: "uppercase", textAlign: "left" }}>What they're really testing</div>
+                    <div style={{ fontSize: 12, letterSpacing: "0.18em", color: C.amber, marginBottom: 8, fontFamily: C.mono, textTransform: "uppercase", textAlign: "left" }}>What they're really testing</div>
                     <p style={{ fontSize: 15, color: C.text, lineHeight: 1.8, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>{r.whatTheyAreTesting}</p>
                   </div>
                   <QCard q={r.q1} whyAsking={r.q1whyAsking} intent={r.q1intent} approach={r.q1approach} mistake={r.q1mistake} num={1} />
@@ -605,7 +699,7 @@ export default function App() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                     <SectionLabel color={C.green}>Strong Answer — Use This as Your Template</SectionLabel>
                     <button onClick={() => copyText(r.exampleAnswer, setCopiedAnswer)}
-                      style={{ background: "none", border: `1px solid ${C.border}`, color: copiedAnswer ? C.green : C.textDim, borderRadius: 6, padding: "5px 12px", fontSize: 10, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.08em" }}>
+                      style={{ background: "none", border: `1px solid ${C.border}`, color: copiedAnswer ? C.green : C.textDim, borderRadius: 6, padding: "5px 12px", fontSize: 12, cursor: "pointer", fontFamily: C.mono, letterSpacing: "0.08em" }}>
                       {copiedAnswer ? "COPIED ✓" : "COPY"}
                     </button>
                   </div>
