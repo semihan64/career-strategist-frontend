@@ -93,7 +93,7 @@ async function callClaude(cv, jd) {
   const s = stripped.indexOf("{");
   const e = stripped.lastIndexOf("}");
   if (s === -1 || e === -1) throw new Error("NO_JSON");
-  const clean = stripped.slice(s, e + 1);
+  let clean = stripped.slice(s, e + 1);
 
   clean = clean
     .split("\u2018").join("'").split("\u2019").join("'")
