@@ -18,11 +18,26 @@ const C = {
 
 // ── Global styles ─────────────────────────────────────────────
 const G = `
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@0,400;0,500&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { background: ${C.bg}; color: ${C.text}; font-family: ${C.sans}; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
-  textarea { resize: vertical; font-family: ${C.mono}; }
-  textarea::placeholder { color: ${C.textDim}; font-style: italic; }
+  html, body {
+    background: ${C.bg};
+    color: ${C.text};
+    font-family: ${C.sans};
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  /* Accessibility: never use italic for body text */
+  p, li, span { font-style: normal !important; }
+  textarea {
+    resize: vertical;
+    font-family: ${C.sans};
+    font-size: 15px;
+    line-height: 1.75;
+  }
+  textarea::placeholder { color: ${C.textDim}; }
   ::-webkit-scrollbar { width: 3px; }
   ::-webkit-scrollbar-thumb { background: ${C.accent}; border-radius: 2px; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -140,7 +155,7 @@ function SectionLabel({ children, color }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
       <div style={{ width: 3, height: 14, background: color || C.accent, borderRadius: 2, flexShrink: 0 }} />
-      <span style={{ fontSize: 10, letterSpacing: "0.2em", color: color || C.textMuted, fontFamily: C.mono, textTransform: "uppercase", fontWeight: 500 }}>{children}</span>
+      <span style={{ fontSize: 12, letterSpacing: "0.05em", color: color || C.textMuted, fontFamily: C.sans, fontWeight: 600 }}>{children}</span>
     </div>
   );
 }
@@ -149,7 +164,7 @@ function Card({ children, style = {}, glow }) {
   return (
     <div style={{
       background: C.card, border: `1px solid ${C.border}`, borderRadius: 12,
-      padding: "20px 22px", minWidth: 0, wordBreak: "break-word",
+      padding: "24px 26px", minWidth: 0, wordBreak: "break-word",
       boxShadow: glow ? `0 0 32px ${glow}` : "0 2px 12px rgba(0,0,0,0.3)",
       ...style
     }}>
@@ -168,7 +183,7 @@ function BulletList({ items, color, size = 14 }) {
       {items.map((line, i) => (
         <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", textAlign: "left" }}>
           <div style={{ width: 5, height: 5, background: color, borderRadius: "50%", marginTop: 7, flexShrink: 0, opacity: 0.8 }} />
-          <p style={{ fontSize: size, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, textAlign: "left", margin: 0 }}>{line}</p>
+          <p style={{ fontSize: 15, color: C.text, lineHeight: 1.8, fontFamily: C.sans, fontWeight: 400, textAlign: "left", margin: 0 }}>{line}</p>
         </div>
       ))}
     </div>
@@ -181,7 +196,7 @@ function ActionList({ items }) {
       {items.map((line, i) => (
         <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", textAlign: "left" }}>
           <span style={{ color: C.accent, fontFamily: C.mono, fontSize: 13, marginTop: 3, flexShrink: 0, fontWeight: 600 }}>→</span>
-          <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, textAlign: "left", margin: 0 }}>{line}</p>
+          <p style={{ fontSize: 15, color: C.text, lineHeight: 1.8, fontFamily: C.sans, fontWeight: 400, textAlign: "left", margin: 0 }}>{line}</p>
         </div>
       ))}
     </div>
@@ -198,7 +213,7 @@ function Pill({ label, value, type }) {
 
   return (
     <div style={{ flex: 1, padding: "0 20px", textAlign: "left" }}>
-      <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 10, textTransform: "uppercase" }}>{label}</div>
+      <div style={{ fontSize: 11, letterSpacing: "0.05em", color: C.textDim, fontFamily: C.sans, marginBottom: 10, fontWeight: 500 }}>{label}</div>
       <div style={{ display: "flex", gap: 4, marginBottom: 8 }}>
         {[1,2,3,4].map(i => (
           <div key={i} style={{ width: 8, height: 8, borderRadius: "50%", background: i <= dots ? col : C.border, transition: "background 0.2s" }} />
@@ -236,7 +251,7 @@ function QCard({ q, whyAsking, intent, approach, mistake, num }) {
     <div style={{ border: `1px solid ${open ? C.borderLight : C.border}`, borderRadius: 10, overflow: "hidden", marginBottom: 8, transition: "border-color 0.2s" }}>
       <button onClick={() => setOpen(!open)} style={{ width: "100%", background: open ? C.cardHover : C.card, border: "none", padding: "14px 18px", cursor: "pointer", display: "flex", alignItems: "flex-start", gap: 14, textAlign: "left" }}>
         <span style={{ fontSize: 10, fontFamily: C.mono, color: C.accent, minWidth: 22, paddingTop: 3, fontWeight: 500 }}>Q{num}</span>
-        <span style={{ fontSize: 14, color: C.text, fontFamily: C.sans, flex: 1, lineHeight: 1.6, fontWeight: 300 }}>{q}</span>
+        <span style={{ fontSize: 15, color: C.text, fontFamily: C.sans, flex: 1, lineHeight: 1.75, fontWeight: 400 }}>{q}</span>
         <div style={{ flexShrink: 0, width: 26, height: 26, borderRadius: 6, background: open ? C.accent : "rgba(107,92,231,0.1)", border: `1px solid ${open ? C.accent : "rgba(107,92,231,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s" }}>
           <span style={{ color: open ? "#fff" : C.accentBright, fontSize: 11, display: "block", transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>▾</span>
         </div>
@@ -244,8 +259,8 @@ function QCard({ q, whyAsking, intent, approach, mistake, num }) {
       {open && (
         <div style={{ background: C.surface, padding: "16px 18px", display: "grid", gap: 14, animation: "fadeUp 0.2s ease" }}>
           <div style={{ background: C.amberBg, border: `1px solid ${C.amberBorder}`, borderRadius: 8, padding: "12px 14px" }}>
-            <div style={{ fontSize: 10, letterSpacing: "0.18em", color: C.amber, marginBottom: 6, fontFamily: C.mono, textTransform: "uppercase", textAlign: "left" }}>Why they're asking this</div>
-            <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>{whyAsking}</p>
+            <div style={{ fontSize: 12, letterSpacing: "0.02em", color: C.amber, marginBottom: 8, fontFamily: C.sans, fontWeight: 600, textAlign: "left" }}>Why they're asking this</div>
+            <p style={{ fontSize: 15, color: C.text, lineHeight: 1.8, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>{whyAsking}</p>
           </div>
           {[
             ["What a strong answer shows", intent, C.accentBright],
@@ -253,8 +268,8 @@ function QCard({ q, whyAsking, intent, approach, mistake, num }) {
             ["Mistake to avoid", mistake, C.red],
           ].map(([lbl, val, col]) => (
             <div key={lbl}>
-              <div style={{ fontSize: 10, letterSpacing: "0.18em", color: col, marginBottom: 6, fontFamily: C.mono, textTransform: "uppercase", textAlign: "left" }}>{lbl}</div>
-              <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{val}</p>
+              <div style={{ fontSize: 12, letterSpacing: "0.02em", color: col, marginBottom: 8, fontFamily: C.sans, fontWeight: 600, textAlign: "left" }}>{lbl}</div>
+              <p style={{ fontSize: 15, color: C.text, lineHeight: 1.8, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>{val}</p>
             </div>
           ))}
         </div>
@@ -477,12 +492,12 @@ export default function App() {
                   <div style={{ borderLeft: `2px solid ${fitColor(r.fitVerdict)}30`, paddingLeft: 18, textAlign: "left" }}>
                     <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Reality Check</div>
                     <div style={{ fontSize: 20, color: fitColor(r.fitVerdict), fontWeight: 600, marginBottom: 10 }}>{r.fitVerdict}</div>
-                    <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.65, margin: 0, fontWeight: 300, textAlign: "left" }}>{r.fitReason}</p>
+                    <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.8, margin: 0, fontWeight: 400, textAlign: "left" }}>{r.fitReason}</p>
                   </div>
                   <div style={{ borderLeft: `2px solid ${applyColor(r.applyVerdict)}30`, paddingLeft: 18, textAlign: "left" }}>
                     <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, marginBottom: 8, textTransform: "uppercase" }}>Should You Apply?</div>
                     <div style={{ fontSize: 20, color: applyColor(r.applyVerdict), fontWeight: 600, marginBottom: 10 }}>{r.applyVerdict}</div>
-                    <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.65, margin: 0, fontWeight: 300, textAlign: "left" }}>{r.applyReason}</p>
+                    <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.8, margin: 0, fontWeight: 400, textAlign: "left" }}>{r.applyReason}</p>
                   </div>
                 </div>
               </div>
@@ -522,7 +537,7 @@ export default function App() {
                   </Card>
                   <Card>
                     <SectionLabel color={C.accentBright}>Your Edge</SectionLabel>
-                    <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.edge}</p>
+                    <p style={{ fontSize: 15, color: C.text, lineHeight: 1.8, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>{r.edge}</p>
                   </Card>
                 </div>
                 <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
@@ -556,7 +571,7 @@ export default function App() {
                     </button>
                   </div>
                   <div style={{ background: C.surface, borderRadius: 10, padding: "24px 24px", borderLeft: `3px solid ${C.accent}`, marginBottom: 20 }}>
-                    <p style={{ fontSize: 17, color: C.text, lineHeight: 1.9, fontStyle: "italic", fontFamily: C.serif, fontWeight: 300, margin: 0, textAlign: "left" }}>"{r.pitch}"</p>
+                    <p style={{ fontSize: 16, color: C.text, lineHeight: 1.85, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>"{r.pitch}"</p>
                   </div>
                   <div style={{ display: "flex", alignItems: "flex-start", gap: 14, padding: "14px 16px", background: C.surface, borderRadius: 8 }}>
                     <span style={{ fontSize: 9, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", paddingTop: 4, flexShrink: 0 }}>Position as</span>
@@ -580,7 +595,7 @@ export default function App() {
                   <SectionLabel color={C.accent}>Interview Strategy</SectionLabel>
                   <div style={{ background: C.surface, borderRadius: 10, padding: "16px 18px", marginBottom: 18, borderLeft: `3px solid ${C.amber}` }}>
                     <div style={{ fontSize: 9, letterSpacing: "0.18em", color: C.amber, marginBottom: 8, fontFamily: C.mono, textTransform: "uppercase", textAlign: "left" }}>What they're really testing</div>
-                    <p style={{ fontSize: 14, color: C.text, lineHeight: 1.65, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.whatTheyAreTesting}</p>
+                    <p style={{ fontSize: 15, color: C.text, lineHeight: 1.8, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>{r.whatTheyAreTesting}</p>
                   </div>
                   <QCard q={r.q1} whyAsking={r.q1whyAsking} intent={r.q1intent} approach={r.q1approach} mistake={r.q1mistake} num={1} />
                   <QCard q={r.q2} whyAsking={r.q2whyAsking} intent={r.q2intent} approach={r.q2approach} mistake={r.q2mistake} num={2} />
@@ -595,7 +610,7 @@ export default function App() {
                     </button>
                   </div>
                   <div style={{ background: C.surface, borderRadius: 10, padding: "18px 20px", borderLeft: `3px solid ${C.green}` }}>
-                    <p style={{ fontSize: 15, color: C.text, lineHeight: 1.9, fontFamily: C.sans, fontWeight: 300, margin: 0, textAlign: "left" }}>{r.exampleAnswer}</p>
+                    <p style={{ fontSize: 15, color: C.text, lineHeight: 1.85, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>{r.exampleAnswer}</p>
                   </div>
                 </Card>
               </div>
