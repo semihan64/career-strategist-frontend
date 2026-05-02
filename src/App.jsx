@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const PROXY_URL = "https://career-strategist-backend-production.up.railway.app/api/analyse";
 
@@ -346,6 +346,8 @@ export default function App() {
   const [loadingMsg, setLoadingMsg] = useState("");
   const [error, setError] = useState("");
   const [copiedPitch, setCopiedPitch] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const [copiedAnswer, setCopiedAnswer] = useState(false);
   const [activeTab, setActiveTab] = useState("fit");
 
@@ -354,6 +356,78 @@ export default function App() {
     "Checking your positioning…", "Pulling the honest read…",
     "Analysing your fit…", "Finding your edge…", "Almost there…",
   ];
+
+  const extractTextFromFile = async (file) => {
+    const ext = file.name.split(".").pop().toLowerCase();
+
+    if (ext === "txt") {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => resolve(e.target.result);
+        reader.onerror = () => reject(new Error("Could not read file"));
+        reader.readAsText(file);
+      });
+    }
+
+    if (ext === "pdf") {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const typedArray = new Uint8Array(e.target.result);
+            const pdfjsLib = window["pdfjs-dist/build/pdf"];
+            pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+            const pdf = await pdfjsLib.getDocument({ data: typedArray }).promise;
+            let text = "";
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const content = await page.getTextContent();
+              text += content.items.map(item => item.str).join(" ") + "\n";
+            }
+            resolve(text.trim());
+          } catch (err) {
+            reject(new Error("Could not read PDF. Try copying and pasting your CV text instead."));
+          }
+        };
+        reader.onerror = () => reject(new Error("Could not read file"));
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    if (ext === "docx") {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const result = await window.mammoth.extractRawText({ arrayBuffer: e.target.result });
+            resolve(result.value.trim());
+          } catch (err) {
+            reject(new Error("Could not read Word document. Try copying and pasting your CV text instead."));
+          }
+        };
+        reader.onerror = () => reject(new Error("Could not read file"));
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    throw new Error("Unsupported file type. Please upload a PDF, Word (.docx), or text file.");
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    setUploadError("");
+    try {
+      const text = await extractTextFromFile(file);
+      if (!text || text.length < 50) throw new Error("No text found in file. Try copying and pasting your CV instead.");
+      setCv(text.slice(0, 8000));
+    } catch (err) {
+      setUploadError(err.message);
+    }
+    setUploading(false);
+    e.target.value = "";
+  };
 
   const handleAnalyse = async () => {
     if (!cv.trim()) { setError("Paste your CV on the left to get started."); return; }
@@ -459,6 +533,21 @@ export default function App() {
   const applyColor = v => v === "Apply now" ? C.green : v === "Skip this one" ? C.red : C.amber;
   const fitColor = v => v === "Strong fit" ? C.green : v === "Low probability" ? C.red : C.amber;
 
+  // ── Load PDF.js + mammoth on mount ──────────────────────────
+  useEffect(() => {
+    const scripts = [
+      { src: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", id: "pdfjs" },
+      { src: "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js", id: "mammoth" },
+    ];
+    scripts.forEach(({ src, id }) => {
+      if (!document.getElementById(id)) {
+        const s = document.createElement("script");
+        s.src = src; s.id = id; s.async = true;
+        document.head.appendChild(s);
+      }
+    });
+  }, []);
+
   // ── INPUT SCREEN ──────────────────────────────────────────
   if (screen === "input") return (
     <>
@@ -514,9 +603,62 @@ export default function App() {
             <div className="input-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16, width: "100%" }}>
               {/* CV */}
               <div style={{ textAlign: "left" }}>
-                <label style={{ fontSize: 12, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8, textAlign: "left" }}>Your CV</label>
-                <textarea value={cv} onChange={e => setCv(e.target.value.slice(0, 8000))} rows={10}
-                  placeholder="Paste your full CV here for the sharpest analysis."
+                <label style={{ fontSize: 12, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 10 }}>Your CV</label>
+
+                {/* Upload zone */}
+                <label style={{ display: "block", cursor: "pointer" }}>
+                  <div style={{ border: `2px dashed ${uploading ? C.accent : cv ? C.green : C.border}`, borderRadius: 10, padding: "16px", marginBottom: 10, background: uploading ? "rgba(107,92,231,0.04)" : cv ? "rgba(16,185,129,0.04)" : "rgba(255,255,255,0.01)", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 12 }}>
+                    {uploading ? (
+                      <>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(107,92,231,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <div style={{ width: 14, height: 14, border: "2px solid rgba(155,143,248,0.3)", borderTopColor: C.accentBright, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 13, color: C.accentBright, fontWeight: 500 }}>Reading your CV...</div>
+                          <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>Just a moment</div>
+                        </div>
+                      </>
+                    ) : cv ? (
+                      <>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5 6.5-7" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, color: C.green, fontWeight: 500 }}>CV loaded</div>
+                          <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>Click to replace · or edit below</div>
+                        </div>
+                        <button onClick={e => { e.preventDefault(); setCv(""); }} style={{ background: "none", border: "none", color: C.textDim, cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "0 4px", flexShrink: 0 }}>×</button>
+                      </>
+                    ) : (
+                      <>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(107,92,231,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 5L8 2l3 3" stroke="#9B8FF8" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 13h12" stroke="#9B8FF8" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: 13, color: C.text, fontWeight: 500 }}>Upload your CV</div>
+                          <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>PDF, Word or TXT · or paste below</div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <input type="file" accept=".pdf,.docx,.txt" onChange={handleFileUpload} style={{ display: "none" }} />
+                </label>
+
+                {uploadError && (
+                  <div style={{ padding: "8px 12px", background: C.redBg, border: `1px solid ${C.redBorder}`, borderRadius: 8, marginBottom: 10 }}>
+                    <p style={{ fontSize: 12, color: C.red, margin: 0, fontFamily: C.sans }}>{uploadError}</p>
+                  </div>
+                )}
+
+                {/* Divider */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                  <div style={{ flex: 1, height: 1, background: C.border }} />
+                  <span style={{ fontSize: 11, color: C.textDim, fontFamily: C.mono }}>or paste manually</span>
+                  <div style={{ flex: 1, height: 1, background: C.border }} />
+                </div>
+
+                <textarea value={cv} onChange={e => setCv(e.target.value.slice(0, 8000))} rows={7}
+                  placeholder="Paste your full CV here..."
                   style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s" }}
                   onFocus={e => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 3px ${C.accentGlow}`; }}
                   onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; }} />
