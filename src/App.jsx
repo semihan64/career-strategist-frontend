@@ -634,12 +634,7 @@ export default function App() {
           <div style={{ maxWidth: 1200, margin: "0 auto", padding: "clamp(16px,3vw,28px) clamp(16px,4vw,28px) 40px", textAlign: "left" }}>
 
             {/* ── Always visible: Mindset + Score ── */}
-            {/* Framing line */}
-            <div style={{ marginBottom: 12, paddingBottom: 12 }}>
-              <p style={{ fontSize: 13, color: C.textMuted, fontFamily: C.sans, fontWeight: 300, margin: 0, letterSpacing: 0 }}>
-                This is what happens when your CV hits their desk.
-              </p>
-            </div>
+
             <MindsetBanner text={r.mindsetBanner || r.fitReason} verdict={r.fitVerdict} />
 
             <Card style={{ marginBottom: 20, animation: "fadeUp 0.4s ease 0.05s both" }}>
@@ -683,11 +678,11 @@ export default function App() {
                   <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                     style={{
                       flex: 1, minWidth: 0,
-                      padding: isActive ? "13px 16px" : "9px 16px",
+                      padding: isActive ? "13px 16px" : "10px 16px",
                       border: `1px solid ${isActive ? "#4A3EC0" : "#1A1C30"}`,
-                      borderBottom: isActive ? `1px solid ${C.surface}` : `1px solid #1A1C30`,
+                      borderBottom: isActive ? `1px solid ${C.surface}` : `1px solid #4A3EC0`,
                       borderRadius: "10px 10px 0 0",
-                      background: isActive ? C.surface : "#080910",
+                      background: isActive ? C.surface : "#0A0B14",
                       color: isActive ? C.text : "#3D4060",
                       fontFamily: C.sans, fontSize: 13, fontWeight: isActive ? 500 : 400,
                       cursor: "pointer", transition: "all 0.2s",
@@ -696,7 +691,7 @@ export default function App() {
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
                       zIndex: isActive ? 10 : 1, position: "relative",
                       whiteSpace: "nowrap", overflow: "hidden",
-                      opacity: isActive ? 1 : 0.5,
+                      margin: "0 -1px",
                     }}>
                     {isActive ? TAB_ICONS[tab.id].on : TAB_ICONS[tab.id].off}
                     <span className="tab-long">{tab.label}</span>
@@ -710,15 +705,14 @@ export default function App() {
             {activeTab === "fit" && (
               <div style={{ animation: "fadeUp 0.3s ease both", background: C.surface, border: "1px solid #4A3EC0", borderRadius: "0 12px 12px 12px", padding: "clamp(16px,3vw,24px)", marginBottom: 16, position: "relative", zIndex: 0 }}>
                 {/* Mode header */}
-                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, textAlign: "center" }}>
+                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, textAlign: "left" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.accentGlow, border: `1px solid ${C.accent}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontSize: 11, color: C.accent, fontWeight: 600, fontFamily: C.mono }}>1</span>
                     </div>
                     <div style={{ fontSize: 11, letterSpacing: "0.15em", color: C.accent, fontFamily: C.mono, textTransform: "uppercase" }}>Decide if this is worth your time</div>
                   </div>
-                  <h2 style={{ fontFamily: C.serif, fontSize: "clamp(20px,3vw,26px)", fontWeight: 400, color: C.text, lineHeight: 1.2, marginBottom: 6, textAlign: "center" }}>Should you go for this or not?</h2>
-                  <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.6, margin: 0, textAlign: "left" }}>Your positioning, gaps, and the signals that decide whether you move forward.</p>
+
                 </div>
                 <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12, textAlign: "left" }}>
                   <Card>
@@ -763,15 +757,14 @@ export default function App() {
             {activeTab === "pitch" && (
               <div style={{ animation: "fadeUp 0.3s ease both", background: C.surface, border: "1px solid #4A3EC0", borderRadius: "12px", padding: "clamp(16px,3vw,24px)", marginBottom: 16, position: "relative", zIndex: 0 }}>
                 {/* Mode header */}
-                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, textAlign: "center" }}>
+                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, textAlign: "left" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.accentGlow, border: `1px solid ${C.accent}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontSize: 11, color: C.accent, fontWeight: 600, fontFamily: C.mono }}>2</span>
                     </div>
                     <div style={{ fontSize: 11, letterSpacing: "0.15em", color: C.accent, fontFamily: C.mono, textTransform: "uppercase" }}>Fix how you're being perceived</div>
                   </div>
-                  <h2 style={{ fontFamily: C.serif, fontSize: "clamp(20px,3vw,26px)", fontWeight: 400, color: C.text, lineHeight: 1.2, marginBottom: 6, textAlign: "center" }}>How you present yourself</h2>
-                  <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.6, margin: 0, textAlign: "left" }}>Your pitch, positioning and the narrative that makes hiring managers pay attention.</p>
+
                 </div>
                 <Card style={{ marginBottom: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -813,15 +806,14 @@ export default function App() {
             {activeTab === "interview" && (
               <div style={{ animation: "fadeUp 0.3s ease both", background: C.surface, border: "1px solid #4A3EC0", borderRadius: "12px 0 12px 12px", padding: "clamp(16px,3vw,24px)", marginBottom: 16, position: "relative", zIndex: 0 }}>
                 {/* Mode header */}
-                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, textAlign: "center" }}>
+                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, textAlign: "left" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.accentGlow, border: `1px solid ${C.accent}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontSize: 11, color: C.accent, fontWeight: 600, fontFamily: C.mono }}>3</span>
                     </div>
                     <div style={{ fontSize: 11, letterSpacing: "0.15em", color: C.accent, fontFamily: C.mono, textTransform: "uppercase" }}>Walk in knowing exactly what to say</div>
                   </div>
-                  <h2 style={{ fontFamily: C.serif, fontSize: "clamp(20px,3vw,26px)", fontWeight: 400, color: C.text, lineHeight: 1.2, marginBottom: 6, textAlign: "center" }}>What to say and how to win</h2>
-                  <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.6, margin: 0, textAlign: "left" }}>The questions they'll ask, what they're really testing, and how to answer with confidence.</p>
+
                 </div>
                 <Card style={{ marginBottom: 12 }}>
                   <SectionLabel color={C.accent}>Interview Strategy</SectionLabel>
