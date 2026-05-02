@@ -364,7 +364,7 @@ export default function App() {
     const t = setInterval(() => { idx = (idx + 1) % MSGS.length; setLoadingMsg(MSGS[idx]); }, 2200);
     try {
       const data = await callClaude(cv, jd);
-      clearInterval(t); setResult(data); setScreen("result");
+      clearInterval(t); setResult(data); setScreen("result"); window.scrollTo({ top: 0, behavior: "instant" });
     } catch (err) {
       clearInterval(t);
       const msg = err.message || "";
@@ -579,29 +579,32 @@ export default function App() {
         <div style={{ minHeight: "100vh", background: C.bg, paddingTop: 64, overflowX: "hidden" }}>
 
           {/* Nav */}
-          <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(8,9,13,0.92)", backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.border}` }}>
-            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(20px,5vw,60px)", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                <span style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 400, color: C.text }}>Perceive</span>
-                <span style={{ fontFamily: C.serif, fontSize: 24, color: C.accent }}>.</span>
+          <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(14,15,24,0.95)", backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.border}` }}>
+            <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(16px,4vw,48px)", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 3, flexShrink: 0 }}>
+                <span style={{ fontFamily: C.serif, fontSize: 22, fontWeight: 400, color: C.text }}>Perceive</span>
+                <span style={{ fontFamily: C.serif, fontSize: 22, color: C.accent }}>.</span>
               </div>
-              <button onClick={() => { setResult(null); setScreen("input"); setActiveTab("fit"); }}
-                style={{ background: C.accent, border: `1px solid ${C.accent}`, color: "#fff", borderRadius: 8, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontFamily: C.sans, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v3M8 11v3M2 8h3M11 8h3" stroke="#fff" strokeWidth="1.3" strokeLinecap="round"/><circle cx="8" cy="8" r="3" stroke="#fff" strokeWidth="1.3"/></svg>
-                Analyse New Role
-              </button>
-              <button onClick={() => { const txt = buildAnalysisText(result); navigator.clipboard.writeText(txt); setCopiedAll(true); setTimeout(() => setCopiedAll(false), 2000); }}
-                style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)", color: C.green, borderRadius: 8, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontFamily: C.sans, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="5" y="1" width="9" height="11" rx="2" stroke="#10B981" strokeWidth="1.3"/><rect x="2" y="4" width="9" height="11" rx="2" stroke="#10B981" strokeWidth="1.3"/></svg>
-                {copiedAll ? "Copied ✓" : "Copy Analysis"}
-              </button>
-              <button onClick={() => window.print()}
-                style={{ background: "transparent", border: `1px solid ${C.border}`, color: C.textMuted, borderRadius: 8, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontFamily: C.sans, fontWeight: 500, display: "flex", alignItems: "center", gap: 6 }}>
-                <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3" stroke="#8892B0" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 12h12" stroke="#8892B0" strokeWidth="1.3" strokeLinecap="round"/></svg>
-                Save as PDF
-              </button>
+              {/* Desktop actions */}
+              <div className="nav-desktop-actions" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button onClick={() => { setResult(null); setScreen("input"); setActiveTab("fit"); setMenuOpen(false); window.scrollTo({ top: 0, behavior: "instant" }); }}
+                  style={{ background: C.accent, border: `1px solid ${C.accent}`, color: "#fff", borderRadius: 8, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontFamily: C.sans, fontWeight: 500, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v3M8 11v3M2 8h3M11 8h3" stroke="#fff" strokeWidth="1.3" strokeLinecap="round"/><circle cx="8" cy="8" r="3" stroke="#fff" strokeWidth="1.3"/></svg>
+                  Analyse New Role
+                </button>
+                <button onClick={() => { const txt = buildAnalysisText(result); navigator.clipboard.writeText(txt); setCopiedAll(true); setTimeout(() => setCopiedAll(false), 2000); }}
+                  style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.25)", color: C.green, borderRadius: 8, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontFamily: C.sans, fontWeight: 500, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="5" y="1" width="9" height="11" rx="2" stroke="#10B981" strokeWidth="1.3"/><rect x="2" y="4" width="9" height="11" rx="2" stroke="#10B981" strokeWidth="1.3"/></svg>
+                  {copiedAll ? "Copied ✓" : "Copy Analysis"}
+                </button>
+                <button onClick={() => window.print()}
+                  style={{ background: "transparent", border: `1px solid ${C.border}`, color: C.textMuted, borderRadius: 8, padding: "7px 14px", fontSize: 12, cursor: "pointer", fontFamily: C.sans, fontWeight: 500, display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 7l3 3 3-3" stroke="#8892B0" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 12h12" stroke="#8892B0" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                  Save as PDF
+                </button>
+              </div>
               {/* Hamburger */}
-              <button className={`hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)} style={{ display: "none" }}>
+              <button className={`hamburger${menuOpen ? " open" : ""}`} onClick={() => setMenuOpen(!menuOpen)}>
                 <span/><span/><span/>
               </button>
             </div>
@@ -628,12 +631,12 @@ export default function App() {
             </div>
           )}
 
-          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "clamp(16px,3vw,28px) clamp(16px,4vw,28px) 40px" }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "clamp(16px,3vw,28px) clamp(16px,4vw,28px) 40px", textAlign: "left" }}>
 
             {/* ── Always visible: Mindset + Score ── */}
             {/* Framing line */}
             <div style={{ marginBottom: 12, paddingBottom: 12 }}>
-              <p style={{ fontSize: 13, color: C.textMuted, fontFamily: C.mono, letterSpacing: "0.05em", margin: 0 }}>
+              <p style={{ fontSize: 13, color: C.textMuted, fontFamily: C.mono, letterSpacing: "0.05em", margin: 0, textAlign: "left" }}>
                 This is what happens when your CV hits their desk.
               </p>
             </div>
@@ -696,7 +699,7 @@ export default function App() {
                     }}>
                     {isActive ? TAB_ICONS[tab.id].on : TAB_ICONS[tab.id].off}
                     <span className="tab-long">{tab.label}</span>
-                    <span className="tab-short" style={{ display: "none" }}>{TAB_HINTS[tab.id]}</span>
+                    <span className="tab-short" style={{ display: "none", textAlign: "left" }}>{TAB_HINTS[tab.id]}</span>
                   </button>
                 );
               })}
@@ -706,17 +709,17 @@ export default function App() {
             {activeTab === "fit" && (
               <div style={{ animation: "fadeUp 0.3s ease both", background: C.surface, border: "1px solid #4A3EC0", borderRadius: "0 12px 12px 12px", padding: "clamp(16px,3vw,24px)", marginBottom: 16, position: "relative", zIndex: 1 }}>
                 {/* Mode header */}
-                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}` }}>
+                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, textAlign: "left" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.accentGlow, border: `1px solid ${C.accent}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontSize: 11, color: C.accent, fontWeight: 600, fontFamily: C.mono }}>1</span>
                     </div>
                     <div style={{ fontSize: 11, letterSpacing: "0.15em", color: C.accent, fontFamily: C.mono, textTransform: "uppercase" }}>Decide if this is worth your time</div>
                   </div>
-                  <h2 style={{ fontFamily: C.serif, fontSize: "clamp(20px,3vw,26px)", fontWeight: 400, color: C.text, lineHeight: 1.2, marginBottom: 6 }}>Should you go for this or not?</h2>
-                  <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.6, margin: 0 }}>Your positioning, gaps, and the signals that decide whether you move forward.</p>
+                  <h2 style={{ fontFamily: C.serif, fontSize: "clamp(20px,3vw,26px)", fontWeight: 400, color: C.text, lineHeight: 1.2, marginBottom: 6, textAlign: "left" }}>Should you go for this or not?</h2>
+                  <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.6, margin: 0, textAlign: "left" }}>Your positioning, gaps, and the signals that decide whether you move forward.</p>
                 </div>
-                <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12, textAlign: "left" }}>
                   <Card>
                     <SectionLabel color={C.green}>Why You Fit</SectionLabel>
                     <BulletList items={whyFit} color={C.green} />
@@ -726,7 +729,7 @@ export default function App() {
                     <p style={{ fontSize: 15, color: C.text, lineHeight: 1.8, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>{r.edge}</p>
                   </Card>
                 </div>
-                <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                <div className="grid-2col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12, textAlign: "left" }}>
                   <Card>
                     <SectionLabel color={C.amber}>Hiring Manager Lens</SectionLabel>
                     <BulletList items={hm} color={C.amber} />
@@ -743,15 +746,15 @@ export default function App() {
                   </Card>
                 </div>
                 {/* Progression cue */}
-                <div onClick={() => setActiveTab("pitch")} style={{ marginTop: 20, padding: "14px 18px", background: "rgba(107,92,231,0.06)", border: `1px solid rgba(107,92,231,0.15)`, borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", transition: "all 0.2s" }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(107,92,231,0.12)"; e.currentTarget.style.borderColor = "rgba(107,92,231,0.3)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(107,92,231,0.06)"; e.currentTarget.style.borderColor = "rgba(107,92,231,0.15)"; }}>
-                  <div>
-                    <div style={{ fontSize: 13, color: C.text, fontWeight: 500, marginBottom: 3 }}>Now let's fix how you position yourself</div>
-                    <div style={{ fontSize: 12, color: C.textMuted }}>Your narrative, pitch and how to frame your story</div>
+                <button onClick={() => setActiveTab("pitch")} style={{ marginTop: 20, width: "100%", padding: "14px 18px", background: "rgba(107,92,231,0.06)", border: `1px solid rgba(107,92,231,0.2)`, borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", transition: "all 0.2s", textAlign: "left", fontFamily: C.sans }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(107,92,231,0.12)"; e.currentTarget.style.borderColor = `${C.accent}`; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(107,92,231,0.06)"; e.currentTarget.style.borderColor = "rgba(107,92,231,0.2)"; }}>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: 13, color: C.accentBright, fontWeight: 500, marginBottom: 3 }}>Next: Your Narrative</div>
+                    <div style={{ fontSize: 12, color: C.textMuted, fontWeight: 300 }}>Fix how you're being perceived. Build your pitch.</div>
                   </div>
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{flexShrink:0}}><path d="M4 9h10M10 5l4 4-4 4" stroke={C.accentBright} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
+                  <svg width="16" height="16" viewBox="0 0 18 18" fill="none" style={{flexShrink:0, marginLeft: 12}}><path d="M4 9h10M10 5l4 4-4 4" stroke={C.accentBright} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
               </div>
             )}
 
@@ -759,15 +762,15 @@ export default function App() {
             {activeTab === "pitch" && (
               <div style={{ animation: "fadeUp 0.3s ease both", background: C.surface, border: "1px solid #4A3EC0", borderRadius: "12px", padding: "clamp(16px,3vw,24px)", marginBottom: 16, position: "relative", zIndex: 1 }}>
                 {/* Mode header */}
-                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}` }}>
+                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, textAlign: "left" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.accentGlow, border: `1px solid ${C.accent}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontSize: 11, color: C.accent, fontWeight: 600, fontFamily: C.mono }}>2</span>
                     </div>
                     <div style={{ fontSize: 11, letterSpacing: "0.15em", color: C.accent, fontFamily: C.mono, textTransform: "uppercase" }}>Fix how you're being perceived</div>
                   </div>
-                  <h2 style={{ fontFamily: C.serif, fontSize: "clamp(20px,3vw,26px)", fontWeight: 400, color: C.text, lineHeight: 1.2, marginBottom: 6 }}>How you present yourself</h2>
-                  <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.6, margin: 0 }}>Your pitch, positioning and the narrative that makes hiring managers pay attention.</p>
+                  <h2 style={{ fontFamily: C.serif, fontSize: "clamp(20px,3vw,26px)", fontWeight: 400, color: C.text, lineHeight: 1.2, marginBottom: 6, textAlign: "left" }}>How you present yourself</h2>
+                  <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.6, margin: 0, textAlign: "left" }}>Your pitch, positioning and the narrative that makes hiring managers pay attention.</p>
                 </div>
                 <Card style={{ marginBottom: 12 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -793,15 +796,15 @@ export default function App() {
                   <ActionList items={actions} />
                 </Card>
                 {/* Progression cue */}
-                <div onClick={() => setActiveTab("interview")} style={{ marginTop: 20, padding: "14px 18px", background: "rgba(107,92,231,0.06)", border: `1px solid rgba(107,92,231,0.15)`, borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", transition: "all 0.2s" }}
-                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(107,92,231,0.12)"; e.currentTarget.style.borderColor = "rgba(107,92,231,0.3)"; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(107,92,231,0.06)"; e.currentTarget.style.borderColor = "rgba(107,92,231,0.15)"; }}>
-                  <div>
-                    <div style={{ fontSize: 13, color: C.text, fontWeight: 500, marginBottom: 3 }}>Now let's prepare what you'll say</div>
-                    <div style={{ fontSize: 12, color: C.textMuted }}>Interview questions, what they're testing and your example answer</div>
+                <button onClick={() => setActiveTab("interview")} style={{ marginTop: 20, width: "100%", padding: "14px 18px", background: "rgba(107,92,231,0.06)", border: `1px solid rgba(107,92,231,0.2)`, borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", transition: "all 0.2s", textAlign: "left", fontFamily: C.sans }}
+                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(107,92,231,0.12)"; e.currentTarget.style.borderColor = `${C.accent}`; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(107,92,231,0.06)"; e.currentTarget.style.borderColor = "rgba(107,92,231,0.2)"; }}>
+                  <div style={{ textAlign: "left" }}>
+                    <div style={{ fontSize: 13, color: C.accentBright, fontWeight: 500, marginBottom: 3 }}>Next: Interview Prep</div>
+                    <div style={{ fontSize: 12, color: C.textMuted, fontWeight: 300 }}>Walk in knowing exactly what to say.</div>
                   </div>
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{flexShrink:0}}><path d="M4 9h10M10 5l4 4-4 4" stroke={C.accentBright} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
+                  <svg width="16" height="16" viewBox="0 0 18 18" fill="none" style={{flexShrink:0, marginLeft: 12}}><path d="M4 9h10M10 5l4 4-4 4" stroke={C.accentBright} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </button>
               </div>
             )}
 
@@ -809,15 +812,15 @@ export default function App() {
             {activeTab === "interview" && (
               <div style={{ animation: "fadeUp 0.3s ease both", background: C.surface, border: "1px solid #4A3EC0", borderRadius: "12px 0 12px 12px", padding: "clamp(16px,3vw,24px)", marginBottom: 16, position: "relative", zIndex: 1 }}>
                 {/* Mode header */}
-                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}` }}>
+                <div style={{ marginBottom: 20, paddingBottom: 16, borderBottom: `1px solid ${C.border}`, textAlign: "left" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                     <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.accentGlow, border: `1px solid ${C.accent}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <span style={{ fontSize: 11, color: C.accent, fontWeight: 600, fontFamily: C.mono }}>3</span>
                     </div>
                     <div style={{ fontSize: 11, letterSpacing: "0.15em", color: C.accent, fontFamily: C.mono, textTransform: "uppercase" }}>Walk in knowing exactly what to say</div>
                   </div>
-                  <h2 style={{ fontFamily: C.serif, fontSize: "clamp(20px,3vw,26px)", fontWeight: 400, color: C.text, lineHeight: 1.2, marginBottom: 6 }}>What to say and how to win</h2>
-                  <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.6, margin: 0 }}>The questions they'll ask, what they're really testing, and how to answer with confidence.</p>
+                  <h2 style={{ fontFamily: C.serif, fontSize: "clamp(20px,3vw,26px)", fontWeight: 400, color: C.text, lineHeight: 1.2, marginBottom: 6, textAlign: "left" }}>What to say and how to win</h2>
+                  <p style={{ fontSize: 13, color: C.textMuted, lineHeight: 1.6, margin: 0, textAlign: "left" }}>The questions they'll ask, what they're really testing, and how to answer with confidence.</p>
                 </div>
                 <Card style={{ marginBottom: 12 }}>
                   <SectionLabel color={C.accent}>Interview Strategy</SectionLabel>
@@ -862,7 +865,7 @@ export default function App() {
               const bg = isStrong ? C.greenBg : isSkip ? C.redBg : C.amberBg;
               const border = isStrong ? C.greenBorder : isSkip ? C.redBorder : C.amberBorder;
               return (
-                <div style={{ margin: "8px 0 24px", padding: "24px 28px", background: bg, border: `1px solid ${border}`, borderRadius: 12, textAlign: "center" }}>
+                <div style={{ margin: "8px 0 24px", padding: "24px 28px", background: bg, border: `1px solid ${border}`, borderRadius: 12, textAlign: "left" }}>
                   <div style={{ fontSize: 22, fontFamily: C.serif, fontWeight: 400, color: col, marginBottom: 8 }}>{headline}</div>
                   <p style={{ fontSize: 14, color: C.textMuted, lineHeight: 1.7, margin: 0, fontFamily: C.sans }}>{sub}</p>
                 </div>
