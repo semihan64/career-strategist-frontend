@@ -705,8 +705,8 @@ export default function App() {
                   </div>
                 </Card>
                 <Card>
-                  <SectionLabel color={C.red}>Why You Might Get Rejected</SectionLabel><BulletList items={rej} color={C.red} /><Divider />
-                  <SectionLabel color={C.accentBright}>What You Should Do Next</SectionLabel><ActionList items={actions} />
+                  <SectionLabel color={C.amber}>What This Signals to the Hiring Manager</SectionLabel>
+                  <p style={{ fontSize: 15, color: C.text, lineHeight: 1.8, fontFamily: C.sans, fontWeight: 400, margin: 0, textAlign: "left" }}>Leading with this framing tells the hiring manager you understand what the role actually requires — not just what it says on paper. It positions you as someone who has already thought about the fit, not someone who needs convincing. A candidate who opens with this kind of clarity is rare. Most walk in with a CV summary. You're walking in with a read on the room.</p>
                 </Card>
                 <button onClick={() => setActiveTab("interview")} style={{ marginTop: 20, width: "100%", padding: "14px 18px", background: "rgba(107,92,231,0.06)", border: `1px solid rgba(107,92,231,0.2)`, borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", transition: "all 0.2s", textAlign: "left", fontFamily: C.sans }}
                   onMouseEnter={e => { e.currentTarget.style.background = "rgba(107,92,231,0.12)"; e.currentTarget.style.borderColor = C.accent; }}
