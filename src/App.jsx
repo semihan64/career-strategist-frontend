@@ -27,6 +27,7 @@ const G = `
   @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  @keyframes loadBar { 0% { width: 0%; margin-left: 0; } 50% { width: 60%; margin-left: 20%; } 100% { width: 0%; margin-left: 100%; } }
   @media(max-width:768px) {
     .grid-2col { grid-template-columns: 1fr !important; }
     .score-grid { grid-template-columns: 1fr !important; }
@@ -255,8 +256,41 @@ export default function App() {
   const [activeTab, setActiveTab] = useState("fit");
   const [copiedAll, setCopiedAll] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [resultVisible, setResultVisible] = useState(false);
 
-  const MSGS = ["Reading the room…", "Thinking like a hiring manager…", "Checking your positioning…", "Pulling the honest read…", "Analysing your fit…", "Finding your edge…", "Almost there…"];
+  const extractJobTitle = (cvText) => {
+    if (!cvText) return null;
+    const lines = cvText.slice(0, 800).split("\n").map(l => l.trim()).filter(Boolean);
+    const titlePatterns = [
+      /^(senior|lead|principal|head of|director|manager|junior|associate)\s+[a-z\s]+$/i,
+      /^[a-z\s]+(manager|director|engineer|designer|analyst|developer|consultant|specialist|lead|officer|architect)$/i,
+    ];
+    for (const line of lines) {
+      if (line.length < 6 || line.length > 60) continue;
+      if (/\d{4}/.test(line)) continue;
+      if (/[@|]/.test(line)) continue;
+      for (const pattern of titlePatterns) {
+        if (pattern.test(line)) return line;
+      }
+    }
+    // fallback: second or third non-empty line that looks like a title
+    const candidates = lines.filter(l => l.length > 5 && l.length < 55 && !/\d{4}/.test(l) && !l.includes("@"));
+    return candidates[1] || null;
+  };
+
+  const getStages = (cvText) => {
+    const title = extractJobTitle(cvText);
+    const opening = title
+      ? "Looking at your experience as " + title + "…"
+      : "Reading your CV…";
+    return [
+      { text: opening,                                  until: 4000  },
+      { text: "Breaking down your experience…",         until: 8000  },
+      { text: "Comparing you to this role…",            until: 13000 },
+      { text: "Finding your strongest angle…",          until: 18000 },
+      { text: "Pulling the honest read…",               until: Infinity },
+    ];
+  };
 
   const extractTextFromFile = async (file) => {
     const ext = file.name.split(".").pop().toLowerCase();
@@ -278,12 +312,19 @@ export default function App() {
     if (!cv.trim()) { setError("Paste your CV on the left to get started."); return; }
     if (!jd.trim()) { setError("Paste a job description to continue."); return; }
     if (loading) return;
-    setError(""); setLoading(true); setResult(null); setLoadingMsg(MSGS[0]);
-    let idx = 0;
-    const t = setInterval(() => { idx = (idx + 1) % MSGS.length; setLoadingMsg(MSGS[idx]); }, 2200);
+    setError(""); setLoading(true); setResult(null);
+    const stages = getStages(cv);
+    setLoadingMsg(stages[0].text);
+    const startTime = Date.now();
+    const t = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const current = stages.findIndex(s => elapsed < s.until);
+      const idx = current === -1 ? stages.length - 1 : current;
+      setLoadingMsg(stages[idx].text);
+    }, 500);
     try {
       const data = await callClaude(cv, jd);
-      clearInterval(t); setResult(data); setScreen("result"); window.scrollTo({ top: 0, behavior: "instant" });
+      clearInterval(t); setResult(data); setScreen("result"); setResultVisible(false); window.scrollTo({ top: 0, behavior: "instant" }); setTimeout(() => setResultVisible(true), 60);
     } catch (err) {
       clearInterval(t);
       const msg = err.message || "";
@@ -315,7 +356,8 @@ export default function App() {
     scripts.forEach(({ src, id }) => { if (!document.getElementById(id)) { const s = document.createElement("script"); s.src = src; s.id = id; s.async = true; document.head.appendChild(s); } });
   }, []);
 
-  if (screen === "input") return (
+
+    if (screen === "input") return (
     <>
       <style>{G}</style>
       <div style={{ minHeight: "100vh", background: C.bg, paddingTop: 68 }}>
@@ -325,7 +367,7 @@ export default function App() {
               <span style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 400, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
               <span style={{ fontFamily: C.serif, fontSize: 24, color: C.accent }}>.</span>
             </div>
-            <div className="status-pill" style={{ display: "flex", alignItems: "center", gap: 6, background: C.greenBg, border: `1px solid ${C.greenBorder}`, borderRadius: 20, padding: "5px 14px 5px 10px" }}>
+            <div className="status-pill hide-mobile" style={{ display: "flex", alignItems: "center", gap: 6, background: C.greenBg, border: `1px solid ${C.greenBorder}`, borderRadius: 20, padding: "5px 14px 5px 10px" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.green, animation: "pulse 2s infinite" }} />
               <span className="status-text" style={{ fontSize: 13, color: C.green, fontFamily: C.mono }}>No sign up. No data stored.</span>
             </div>
@@ -344,7 +386,7 @@ export default function App() {
                 <span style={{ fontStyle: "italic", color: C.accent, fontWeight: 300 }}>so why aren't you getting offers?</span>
               </h1>
             </div>
-            <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, paddingLeft: 21, fontWeight: 300, textAlign: "left" }}>Most candidates walk in guessing. You won't.</p>
+            <p style={{ fontSize: 15, color: C.textMuted, lineHeight: 1.7, paddingLeft: 21, fontWeight: 300, textAlign: "left" }}>Most candidates walk in guessing. You won't.<br/>Paste your CV and the job description to see exactly how you're being evaluated.</p>
           </div>
           <div style={{ paddingBottom: 32, animation: "fadeUp 0.6s ease 0.1s both", textAlign: "left" }}>
             <div style={{ fontSize: 12, letterSpacing: "0.2em", color: C.text, textTransform: "uppercase", fontFamily: C.mono, marginBottom: 12, opacity: 0.6 }}>What you get</div>
@@ -355,94 +397,153 @@ export default function App() {
                 </div>
               ))}
             </div>
+            <p style={{ fontSize: 13, color: C.textDim, fontFamily: C.sans, marginTop: 14, fontWeight: 300 }}>No fluff. No generic advice. Just an honest read.</p>
           </div>
           <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 28, animation: "fadeUp 0.6s ease 0.15s both", textAlign: "left" }}>
             {/* ── HEIGHT FIX: grid stretch + flex columns ── */}
             <div className="input-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16, width: "100%", alignItems: "stretch" }}>
               {/* CV */}
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "20px", display: "flex", flexDirection: "column", gap: 0 }}>
-                {/* Header */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                  <label style={{ fontSize: 11, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase" }}>Your CV</label>
-                  <span style={{ fontSize: 11, color: C.textDim, fontFamily: C.mono }}>{cv ? cv.length + " chars" : "PDF · DOCX · TXT"}</span>
-                </div>
+              <div style={{ textAlign: "left", display: "flex", flexDirection: "column", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "20px" }}>
+                <label style={{ fontSize: 12, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 10 }}>Your CV</label>
 
-                {/* Upload zone */}
-                <label style={{ display: "block", cursor: "pointer", marginBottom: 12 }}>
-                  <div style={{ border: `1.5px dashed ${uploading ? C.accent : cv ? C.green : C.borderLight}`, borderRadius: 8, padding: "12px 14px", background: uploading ? "rgba(107,92,231,0.04)" : cv ? "rgba(16,185,129,0.04)" : "transparent", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 10 }}>
+                {/* Upload / drag-drop zone */}
+                <label style={{ display: "block", cursor: "pointer" }}
+                  onDragOver={e => { e.preventDefault(); e.currentTarget.querySelector(".drop-inner").style.borderColor = C.accent; e.currentTarget.querySelector(".drop-inner").style.background = "rgba(107,92,231,0.06)"; }}
+                  onDragLeave={e => { e.currentTarget.querySelector(".drop-inner").style.borderColor = cv ? C.green : "#4A4C6A"; e.currentTarget.querySelector(".drop-inner").style.background = cv ? "rgba(16,185,129,0.04)" : "transparent"; }}
+                  onDrop={e => { e.preventDefault(); e.currentTarget.querySelector(".drop-inner").style.borderColor = cv ? C.green : "#4A4C6A"; e.currentTarget.querySelector(".drop-inner").style.background = cv ? "rgba(16,185,129,0.04)" : "transparent"; const file = e.dataTransfer.files[0]; if (file) handleFileUpload({ target: { files: [file], value: "" } }); }}>
+                  <div className="drop-inner" style={{ border: `2px dashed ${uploading ? C.accent : cv ? C.green : "#4A4C6A"}`, borderRadius: 10, padding: "14px 16px", marginBottom: 10, background: uploading ? "rgba(107,92,231,0.04)" : cv ? "rgba(16,185,129,0.04)" : "transparent", transition: "all 0.2s", display: "flex", alignItems: "center", gap: 12 }}>
                     {uploading ? (
                       <>
-                        <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(107,92,231,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          <div style={{ width: 12, height: 12, border: "1.5px solid rgba(155,143,248,0.3)", borderTopColor: C.accentBright, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(107,92,231,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <div style={{ width: 14, height: 14, border: "2px solid rgba(155,143,248,0.3)", borderTopColor: C.accentBright, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
                         </div>
-                        <div><div style={{ fontSize: 12, color: C.accentBright, fontWeight: 500 }}>Reading your CV...</div></div>
+                        <div>
+                          <div style={{ fontSize: 13, color: C.accentBright, fontWeight: 500 }}>Reading your CV...</div>
+                          <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>Just a moment</div>
+                        </div>
                       </>
                     ) : cv ? (
                       <>
-                        <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5 6.5-7" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.5 3.5 6.5-7" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         </div>
-                        <div style={{ flex: 1 }}><div style={{ fontSize: 12, color: C.green, fontWeight: 500 }}>CV loaded — click to replace</div></div>
-                        <button onClick={e => { e.preventDefault(); setCv(""); }} style={{ background: "none", border: "none", color: C.textDim, cursor: "pointer", fontSize: 16, lineHeight: 1, padding: "0 2px", flexShrink: 0 }}>×</button>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, color: C.green, fontWeight: 500 }}>CV loaded</div>
+                          <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>Click or drag to replace</div>
+                        </div>
+                        <button onClick={e => { e.preventDefault(); setCv(""); }} style={{ background: "none", border: "none", color: C.textDim, cursor: "pointer", fontSize: 18, lineHeight: 1, padding: "0 4px", flexShrink: 0 }}>×</button>
                       </>
                     ) : (
                       <>
-                        <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(107,92,231,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 5L8 2l3 3" stroke="#9B8FF8" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 13h12" stroke="#9B8FF8" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(107,92,231,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v8M5 5L8 2l3 3" stroke="#9B8FF8" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/><path d="M2 13h12" stroke="#9B8FF8" strokeWidth="1.4" strokeLinecap="round"/></svg>
                         </div>
-                        <div><div style={{ fontSize: 12, color: C.text, fontWeight: 500 }}>Upload your CV</div><div style={{ fontSize: 11, color: C.textDim, marginTop: 2 }}>PDF, Word or TXT</div></div>
+                        <div>
+                          <div style={{ fontSize: 13, color: C.text, fontWeight: 500 }}>Upload or drag your CV here</div>
+                          <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>PDF, Word or TXT</div>
+                        </div>
                       </>
                     )}
                   </div>
                   <input type="file" accept=".pdf,.docx,.txt" onChange={handleFileUpload} style={{ display: "none" }} />
                 </label>
 
-                {uploadError && <div style={{ padding: "7px 12px", background: C.redBg, border: `1px solid ${C.redBorder}`, borderRadius: 6, marginBottom: 10 }}><p style={{ fontSize: 12, color: C.red, margin: 0 }}>{uploadError}</p></div>}
+                {uploadError && (
+                  <div style={{ padding: "8px 12px", background: C.redBg, border: `1px solid ${C.redBorder}`, borderRadius: 8, marginBottom: 10 }}>
+                    <p style={{ fontSize: 12, color: C.red, margin: 0, fontFamily: C.sans }}>{uploadError}</p>
+                  </div>
+                )}
 
-                {/* Divider */}
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                   <div style={{ flex: 1, height: 1, background: C.border }} />
-                  <span style={{ fontSize: 11, color: C.textDim, fontFamily: C.mono, letterSpacing: "0.08em" }}>or paste</span>
+                  <span style={{ fontSize: 11, color: C.textDim, fontFamily: C.mono }}>or paste manually</span>
                   <div style={{ flex: 1, height: 1, background: C.border }} />
                 </div>
 
-                {/* Textarea fills remaining height */}
                 <textarea value={cv} onChange={e => setCv(e.target.value.slice(0, 8000))}
                   placeholder="Paste your full CV here..."
-                  style={{ flex: 1, minHeight: 0, width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 8, padding: "12px 14px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s", resize: "none" }}
+                  style={{ flex: 1, minHeight: 0, width: "100%", background: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s", resize: "none" }}
                   onFocus={e => { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 3px ${C.accentGlow}`; }}
                   onBlur={e => { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; }} />
+
+                {/* CV confirmation */}
+                {cv && !uploading && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}>
+                    <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 7.5l3.5 3.5 6.5-7" stroke="#10B981" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <span style={{ fontSize: 12, color: C.green, fontFamily: C.sans }}>CV received</span>
+                  </div>
+                )}
               </div>
 
               {/* JD */}
-              <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "20px", display: "flex", flexDirection: "column" }}>
-                {/* Header */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                  <label style={{ fontSize: 11, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase" }}>Job Description</label>
-                  <span style={{ fontSize: 11, color: jd.length > 9000 ? C.amber : C.textDim, fontFamily: C.mono }}>{jd.length} / 10000</span>
-                </div>
-
-                {/* Textarea fills full height */}
+              <div style={{ textAlign: "left", display: "flex", flexDirection: "column", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "20px" }}>
+                <label style={{ fontSize: 12, letterSpacing: "0.18em", color: C.textDim, fontFamily: C.mono, textTransform: "uppercase", display: "block", marginBottom: 8 }}>Job Description</label>
                 <textarea value={jd} onChange={e => { setJd(e.target.value.slice(0, 10000)); setError(""); }}
                   placeholder="Paste the job description here..."
-                  style={{ flex: 1, minHeight: 0, width: "100%", background: C.surface, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 8, padding: "12px 14px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s", resize: "none" }}
+                  style={{ flex: 1, minHeight: 0, width: "100%", background: C.card, border: `1px solid ${error ? C.red : C.border}`, borderRadius: 10, padding: "14px 16px", color: C.text, fontSize: 13, lineHeight: 1.7, outline: "none", transition: "border-color 0.2s, box-shadow 0.2s", resize: "none" }}
                   onFocus={e => { if (!error) { e.target.style.borderColor = C.accent; e.target.style.boxShadow = `0 0 0 3px ${C.accentGlow}`; } }}
-                  onBlur={e => { if (!error) { e.target.style.borderColor = error ? C.red : C.border; e.target.style.boxShadow = "none"; } }} />
+                  onBlur={e => { if (!error) { e.target.style.borderColor = C.border; e.target.style.boxShadow = "none"; } }} />
+
+                {/* JD footer — confirmation + char count */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 6 }}>
+                  {jd ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 7.5l3.5 3.5 6.5-7" stroke="#10B981" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      <span style={{ fontSize: 12, color: C.green, fontFamily: C.sans }}>Job description received</span>
+                    </div>
+                  ) : <span />}
+                  <span style={{ fontSize: 12, color: jd.length > 9000 ? C.amber : C.textDim, fontFamily: C.mono }}>{jd.length} / 10000</span>
+                </div>
               </div>
             </div>
 
             <button onClick={handleAnalyse} disabled={loading}
-              style={{ width: "100%", background: loading ? C.surface : `linear-gradient(135deg, ${C.accent}, #5548CC)`, color: "#fff", border: "none", borderRadius: 10, padding: "16px 0", fontSize: 14, fontWeight: 500, cursor: loading ? "not-allowed" : "pointer", fontFamily: C.sans, letterSpacing: "0.04em", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, transition: "opacity 0.2s, transform 0.15s, box-shadow 0.2s", boxShadow: loading ? "none" : "0 4px 24px rgba(107,92,231,0.3)" }}
-              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(107,92,231,0.45)"; }}}
-              onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = loading ? "none" : "0 4px 24px rgba(107,92,231,0.3)"; }}>
-              {loading ? <><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />{loadingMsg}</> : "Analyse this role →"}
+              style={{ width: "100%", background: loading ? C.surface : `linear-gradient(135deg, ${C.accent}, #5548CC)`, color: "#fff", border: "none", borderRadius: 10, padding: "16px 0", fontSize: 14, fontWeight: 500, cursor: loading ? "not-allowed" : "pointer", fontFamily: C.sans, letterSpacing: "0.04em", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, transition: "opacity 0.2s, transform 0.15s, box-shadow 0.2s", boxShadow: loading ? "none" : cv && jd ? "0 4px 24px rgba(107,92,231,0.3)" : "none", opacity: loading ? 1 : cv && jd ? 1 : 0.45 }}
+              onMouseEnter={e => { if (!loading && cv && jd) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(107,92,231,0.45)"; }}}
+              onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = loading ? "none" : cv && jd ? "0 4px 24px rgba(107,92,231,0.3)" : "none"; }}>
+              {loading ? <><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />{loadingMsg}</> : "Read me →"}
             </button>
+            {/* Loading overlay */}
+            {loading && (
+              <div style={{ marginTop: 16, animation: "fadeUp 0.3s ease both" }}>
+                {/* Progress bar */}
+                <div style={{ height: 2, background: C.border, borderRadius: 2, overflow: "hidden", marginBottom: 18 }}>
+                  <div style={{ height: "100%", background: `linear-gradient(90deg, ${C.accent}, ${C.accentBright})`, borderRadius: 2, animation: "loadBar 2.4s ease-in-out infinite" }} />
+                </div>
+                {/* Stage message */}
+                <p style={{ fontSize: 14, color: C.textMuted, fontFamily: C.sans, textAlign: "center", margin: "0 0 8px", transition: "opacity 0.4s ease", lineHeight: 1.6 }}>{loadingMsg}</p>
+                {/* Expectation line */}
+                <p style={{ fontSize: 12, color: C.textDim, fontFamily: C.mono, textAlign: "center", margin: 0, letterSpacing: "0.04em" }}>This takes about 20 seconds. Worth the wait.</p>
+              </div>
+            )}
+
             {error && (
               <div style={{ marginTop: 12, padding: "11px 16px", borderRadius: 8, background: error.includes("on a roll") ? C.amberBg : C.redBg, border: `1px solid ${error.includes("on a roll") ? C.amberBorder : C.redBorder}`, textAlign: "center" }}>
                 <p style={{ fontSize: 13, color: error.includes("on a roll") ? C.amber : C.red, margin: 0, fontFamily: C.sans }}>{error}</p>
               </div>
             )}
-            <p style={{ fontSize: 13, color: C.textDim, textAlign: "center", marginTop: 12, fontFamily: C.sans }}>Your CV and job description are not stored. All analysis happens in real time.</p>
+            <p style={{ fontSize: 12, color: C.textDim, textAlign: "center", marginTop: 12, fontFamily: C.sans }}>
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{marginRight: 5, verticalAlign: "middle"}}><path d="M9 5H3V4a3 3 0 0 1 6 0v1zm-7 0v6h8V5H2zm4 3.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" fill="#555870"/></svg>
+              Your CV and job description are processed in real time and never stored.
+            </p>
+          </div>
+        </div>
+        {/* Footer */}
+        <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 48, padding: "24px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+            {/* Left — logo */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
+                <span style={{ fontFamily: C.serif, fontSize: 20, fontWeight: 400, color: C.text }}>Perceive</span>
+                <span style={{ fontFamily: C.serif, fontSize: 20, color: C.accent }}>.</span>
+              </div>
+            </div>
+            {/* Right — built by + email + trust */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
+              <span style={{ fontSize: 12, color: C.textMuted, fontFamily: C.sans }}>Built by Semihan Dosunmu</span>
+              <a href="mailto:hello.perceive@gmail.com" style={{ fontSize: 12, color: C.accentBright, fontFamily: C.sans, textDecoration: "none" }}>hello.perceive@gmail.com</a>
+              <span style={{ fontSize: 11, color: C.textDim, fontFamily: C.mono, letterSpacing: "0.04em" }}>No data stored. Ever.</span>
+            </div>
           </div>
         </div>
       </div>
@@ -461,7 +562,7 @@ export default function App() {
     return (
       <>
         <style>{G}</style>
-        <div style={{ minHeight: "100vh", background: C.bg, paddingTop: 64, overflowX: "hidden" }}>
+        <div style={{ minHeight: "100vh", background: C.bg, paddingTop: 64, overflowX: "hidden", opacity: resultVisible ? 1 : 0, transition: "opacity 0.3s ease" }}>
           <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(14,15,24,0.95)", backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.border}` }}>
             <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(16px,4vw,48px)", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 3, flexShrink: 0 }}>
