@@ -523,24 +523,24 @@ export default function App() {
               </div>
             )}
             <p style={{ fontSize: 12, color: C.textDim, textAlign: "center", marginTop: 12, fontFamily: C.sans }}>
-              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{marginRight: 5, verticalAlign: "middle"}}><path d="M9 5H3V4a3 3 0 0 1 6 0v1zm-7 0v6h8V5H2zm4 3.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" fill="#555870"/></svg>
-              Your CV and job description are processed in real time and never stored.
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <svg width="11" height="11" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}><path d="M9 5H3V4a3 3 0 0 1 6 0v1zm-7 0v6h8V5H2zm4 3.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" fill="#555870"/></svg>
+                Your CV and job description are processed in real time and never stored.
+              </span>
             </p>
           </div>
         </div>
         {/* Footer */}
-        <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 48, padding: "24px 0" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div style={{ borderTop: `1px solid ${C.border}`, marginTop: 48 }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "28px clamp(20px,5vw,60px) 16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
             {/* Left — logo */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 2 }}>
-                <span style={{ fontFamily: C.serif, fontSize: 20, fontWeight: 400, color: C.text }}>Perceive</span>
-                <span style={{ fontFamily: C.serif, fontSize: 20, color: C.accent }}>.</span>
-              </div>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 2, flexShrink: 0 }}>
+              <span style={{ fontFamily: C.serif, fontSize: 20, fontWeight: 400, color: C.text }}>Perceive</span>
+              <span style={{ fontFamily: C.serif, fontSize: 20, color: C.accent }}>.</span>
             </div>
             {/* Right — built by + email + trust */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-              <span style={{ fontSize: 12, color: C.textMuted, fontFamily: C.sans }}>Built by Semihan Dosunmu</span>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 5 }}>
+              <span style={{ fontSize: 12, color: C.textMuted, fontFamily: C.sans }}>Made by Semihan 🤍</span>
               <a href="mailto:hello.perceive@gmail.com" style={{ fontSize: 12, color: C.accentBright, fontFamily: C.sans, textDecoration: "none" }}>hello.perceive@gmail.com</a>
               <span style={{ fontSize: 11, color: C.textDim, fontFamily: C.mono, letterSpacing: "0.04em" }}>No data stored. Ever.</span>
             </div>
