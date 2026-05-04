@@ -501,7 +501,7 @@ export default function App() {
               style={{ width: "100%", background: loading ? C.surface : `linear-gradient(135deg, ${C.accent}, #5548CC)`, color: "#fff", border: "none", borderRadius: 10, padding: "16px 0", fontSize: 14, fontWeight: 500, cursor: loading ? "not-allowed" : "pointer", fontFamily: C.sans, letterSpacing: "0.04em", display: "flex", alignItems: "center", justifyContent: "center", gap: 12, transition: "opacity 0.2s, transform 0.15s, box-shadow 0.2s", boxShadow: loading ? "none" : cv && jd ? "0 4px 24px rgba(107,92,231,0.3)" : "none", opacity: loading ? 1 : cv && jd ? 1 : 0.45 }}
               onMouseEnter={e => { if (!loading && cv && jd) { e.currentTarget.style.transform = "translateY(-1px)"; e.currentTarget.style.boxShadow = "0 8px 32px rgba(107,92,231,0.45)"; }}}
               onMouseLeave={e => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = loading ? "none" : cv && jd ? "0 4px 24px rgba(107,92,231,0.3)" : "none"; }}>
-              {loading ? <><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />{loadingMsg}</> : "Read me →"}
+              {loading ? <><div style={{ width: 16, height: 16, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />Analysing…</> : "Read me →"}
             </button>
             {/* Loading overlay */}
             {loading && (
