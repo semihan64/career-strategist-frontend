@@ -428,14 +428,16 @@ const handleAnalyse = async () => {
 if (!cv.trim()) { setError("Paste your CV on the left to get started."); return; }
 if (!jd.trim()) { setError("Paste a job description to continue."); return; }
 if (loading) return;
+// Navigate to result page immediately — skeleton shows there while API runs
 setError(""); setLoading(true); setResult(null); setStageIndex(0); setProgress(0);
-window.scrollTo({ top: 0, behavior: "smooth" });
+setScreen("result"); setResultVisible(false);
+window.scrollTo({ top: 0, behavior: "instant" });
 
 const startTime = Date.now();
 const totalEstimated = LOADING_STAGES.length * STAGE_DURATION;
 const t = setInterval(() => {
   const elapsed = Date.now() - startTime;
-  const pct = Math.min((elapsed / totalEstimated) * 95, 95); // cap at 95 until done
+  const pct = Math.min((elapsed / totalEstimated) * 95, 95);
   setProgress(pct);
   setStageIndex(Math.min(Math.floor(elapsed / STAGE_DURATION), LOADING_STAGES.length - 1));
 }, 80);
@@ -445,12 +447,14 @@ const data = await callClaude(cv, jd);
 clearInterval(t);
 setProgress(100);
 setTimeout(() => {
-  setResult(data); setScreen("result"); setResultVisible(false);
+  setResult(data); setResultVisible(false);
   window.scrollTo({ top: 0, behavior: "instant" });
   setTimeout(() => setResultVisible(true), 60);
 }, 300);
 } catch (err) {
 clearInterval(t); setProgress(0);
+// On error — return to input screen with message
+setScreen("input");
 const msg = err.message || "";
 if (msg === "CV_EMPTY") setError("Paste your CV on the left to get started.");
 else if (msg === "JD_EMPTY") setError("Paste a job description to continue.");
