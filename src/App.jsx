@@ -540,11 +540,7 @@ if (screen === "input") return (
 
       <div style={{ borderTop: `1px solid ${C.border}`, paddingTop: 28, animation: "fadeUp 0.6s ease 0.15s both", textAlign: "left" }}>
 
-        {/* ── Loading skeleton replaces the input form during analysis ── */}
-        {loading ? (
-          <LoadingSkeleton stageIndex={stageIndex} progress={progress} stages={LOADING_STAGES} />
-        ) : (
-          <>
+        <>
             <div className="input-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16, width: "100%", alignItems: "stretch" }}>
               {/* CV */}
               <div style={{ textAlign: "left", display: "flex", flexDirection: "column", background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "20px" }}>
@@ -604,8 +600,7 @@ if (screen === "input") return (
                 Your CV and job description are processed in real time and never stored.
               </span>
             </p>
-          </>
-        )}
+        </>
       </div>
     </div>
 
@@ -628,6 +623,30 @@ if (screen === "input") return (
 );
 
 // ── RESULT SCREEN ─────────────────────────────────────────────
+if (screen === "result") {
+// Show skeleton while loading, real results once data arrives
+if (loading && !result) {
+  return (
+    <>
+      <style>{G}</style>
+      <div style={{ minHeight: "100vh", background: C.bg, paddingTop: 68 }}>
+        <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 100, background: "rgba(8,9,13,0.92)", backdropFilter: "blur(20px)", borderBottom: `1px solid ${C.border}` }}>
+          <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(20px,5vw,60px)", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+              <span style={{ fontFamily: C.serif, fontSize: 24, fontWeight: 400, color: C.text, letterSpacing: "0.02em" }}>Perceive</span>
+              <span style={{ fontFamily: C.serif, fontSize: 24, color: C.accent }}>.</span>
+            </div>
+          </div>
+        </nav>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px clamp(20px,5vw,60px) 60px" }}>
+          <LoadingSkeleton stageIndex={stageIndex} progress={progress} stages={LOADING_STAGES} />
+        </div>
+      </div>
+    </>
+  );
+}
+}
+
 if (screen === "result" && result) {
 const r = result;
 const whyFit = pipeSplit(r.whyFit);
